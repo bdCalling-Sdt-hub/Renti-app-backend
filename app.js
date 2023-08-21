@@ -6,14 +6,11 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 
-
-
 // Connect to the MongoDB database
 mongoose.connect(process.env.MONGODB_CONNECTION, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
 
 // Middleware
 app.use(express.json());
@@ -30,6 +27,7 @@ app.use('/api/user', userRouter);
 
 // Start the server
 app.listen(3001, '103.161.9.43',() => {
-  console.log('Server started on port 3000');
+    console.log('Server started on port 3001');
 });
-// IP: '103.161.9.43'
+
+module.exports = app;
