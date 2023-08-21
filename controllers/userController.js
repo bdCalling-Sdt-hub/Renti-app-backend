@@ -1,6 +1,6 @@
 
 const signUp = async (req, res) => {
-    res.send('hi');
+    res.send('hello');
 };
 
 module.exports = { signUp }
