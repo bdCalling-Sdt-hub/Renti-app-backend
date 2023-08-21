@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true},
     KYC: { type: Object, required: false},
     RFC: { type: String, required: false},
+    creaditCardNumber: { type: String, required: false},
     image: { type: Object, required: false},
     role: { type: String, enum: ['user', 'admin', 'unknown', 'host'], default: 'unknown' },
   },{
