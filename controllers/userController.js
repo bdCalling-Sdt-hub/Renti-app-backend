@@ -80,6 +80,23 @@ const signUp = async (req, res) => {
   }
 };
 
+//Verify email
+const verifyEmail  = async (req, res) => {
+    try {
+        const { oneTimeCode, email } = req.body;
+        const user = await User.findOne({ email: email});
+        if (!user) {
+            res.status(404).json({ message: 'User Not Found' });
+        }else if (user.oneTimeCode === oneTimeCode) {
+            user.emailVerified = true;
+            await user.save();
+            res.status(200).json({message: 'Email veriified successfully'});
+        }else{
+            res.status(401).json({ message: 'Failed to verify' });
+        };
+    } catch (error) {
+        res.status(500).json({ message: 'Error finding when verify email'});
+    }
+};
 
-
-module.exports = { signUp }
+module.exports = { signUp, verifyEmail }
