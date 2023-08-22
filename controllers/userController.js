@@ -162,4 +162,27 @@ const allUsers = async (req, res) => {
     }
 };
 
-module.exports = { signUp, verifyEmail, signIn, allUsers }
+//Banned users
+const bannedUsers = async (req, res) => {
+    try {
+        const admin = await User.findOne({ _id: req.body.userId });
+        const user = await User.findById(req.params.id);
+        if(!admin){
+            res.status(404).json({ message: 'Admin not found'})
+        }else if(!user){
+            res.status(404).json({ message: 'User not found'});
+        }else if(user.isBanned === true){
+            res.status(403).json({ message: 'User is already banned'})
+        }else if(admin.role === 'admin'){
+            user.isBanned = true;
+            await user.save();
+            res.status(200).json({ message: 'User successfully banned' });
+        }else{
+            res.status(404).json({ message: 'You are not authorized' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error while banned user', error});
+    }
+};
+
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers }
