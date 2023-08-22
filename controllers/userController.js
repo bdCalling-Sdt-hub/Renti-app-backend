@@ -165,24 +165,41 @@ const allUsers = async (req, res) => {
 //Banned users
 const bannedUsers = async (req, res) => {
     try {
-        const admin = await User.findOne({ _id: req.body.userId });
-        const user = await User.findById(req.params.id);
-        if(!admin){
-            res.status(404).json({ message: 'Admin not found'})
-        }else if(!user){
-            res.status(404).json({ message: 'User not found'});
-        }else if(user.isBanned === true){
-            res.status(403).json({ message: 'User is already banned'})
-        }else if(admin.role === 'admin'){
-            user.isBanned = true;
-            await user.save();
-            res.status(200).json({ message: 'User successfully banned' });
-        }else{
-            res.status(404).json({ message: 'You are not authorized' });
+        // Step 1: Fetch the admin and user information
+        const adminId = req.body.userId;
+        const admin = await User.findOne({ _id: adminId });
+        const userId = req.params.id;
+        const user = await User.findById(userId);
+
+        // Step 2: Check if admin and user exist
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
         }
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Step 3: Check if user is already banned
+        if (user.isBanned === true) {
+            return res.status(403).json({ message: 'User is already banned' });
+        }
+
+        // Step 4: Check if the requester is an admin
+        if (admin.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized' });
+        }
+
+        // Step 5: Ban the user
+        user.isBanned = true;
+        await user.save();
+
+        // Step 6: Respond with success message
+        res.status(200).json({ message: 'User successfully banned' });
     } catch (error) {
-        res.status(500).json({ message: 'Error while banned user', error});
+        // Step 7: Handle errors
+        res.status(500).json({ message: 'Error while banning user', error });
     }
 };
+
 
 module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers }
