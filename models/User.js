@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+var bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     fullName: { type: String, required: [true, 'Name is must be given'] },
@@ -19,13 +20,14 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, required: [true, 'Password is must be given']},
     address: { type: String, required: false},
     dateOfBirth: { type: String, required: false},
-    password: { type: String, required: true},
+    password: { type: String, required: [true, 'Password must be given'], set: (v) => bcrypt.hashSync(v, bcrypt.genSaltSync(10)) },
     KYC: { type: Object, required: false},
     RFC: { type: String, required: false},
     creaditCardNumber: { type: String, required: false},
     image: { type: Object, required: false},
     role: { type: String, enum: ['user', 'admin', 'unknown', 'host'], default: 'unknown' },
     emailVerified: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
     oneTimeCode: { type: String, required: false } 
   },{
     toJSON: {

@@ -1,6 +1,9 @@
 const emailWithNodemailer = require("../helper/email");
 const User = require("../models/User");
+var bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const signUpService = require("../services/userService");
+const { createJSONWebToken } = require("../helper/jsonWebToken");
 
 
 // Define a map to store user timers for sign up requests
@@ -99,4 +102,43 @@ const verifyEmail  = async (req, res) => {
     }
 };
 
-module.exports = { signUp, verifyEmail }
+//Sign in user
+const signIn = async (req, res) => {
+    try {
+      //Get email password from req.body
+      const { email, password } = req.body;
+  
+      // Find the user by email
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication failed' });
+      }
+  
+      // Compare the provided password with the stored hashed password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+  
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Authentication failed' });
+      }
+  
+      //Checking banned user
+      if (user.isBanned) {
+        return res.status(403).json({ message: 'User is banned! Please Contract authority' });
+      }
+  
+      //Token, set the Cokkie
+    //   const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+      const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
+      // res.cookie('accessToken', accessToken, { maxAge: 60 * 60 * 1000, });
+      // console.log('Controller Cookie:', req.cookies.accessToken);
+  
+      //Success response
+      res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
+    } catch (error) {
+        console.error(error);
+      res.status(500).json({ message: 'Error signing in', error });
+    }
+  };
+
+module.exports = { signUp, verifyEmail, signIn }
