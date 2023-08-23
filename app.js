@@ -1,7 +1,6 @@
 // app.js
 const express = require('express');
 const mongoose = require('mongoose');
-const userRouter = require('./routes/userRouter');
 const carRouter = require('./routes/carRouter');
 const cors = require('cors');
 require('dotenv').config();
@@ -23,7 +22,6 @@ app.use(cors({
 
 
 // Routes
-app.use('/api/user', userRouter);
 app.use('/api/car', carRouter);
 
 

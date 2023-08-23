@@ -1,15 +1,31 @@
 const Car = require("../models/Car");
+const jwt = require('jsonwebtoken');
 const { createCarService, getCarsService, getById, update, remove, getsSearchByName } = require("../services/CarService");
 
 const createCar = async (req, res) => {
     try {
         const { carModelName, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
 
+        // const { authorization } = req.headers;
+        // console.log("authorization", authorization)
+        // let token;
+        // let decodedData;
+        // if (authorization && authorization.startsWith("Bearer")) {
+        //     token = authorization.split(" ")[1];
+        //     console.log("Token", token)
+        //     decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        // }
+
+        // // Find the user
+        // console.log("decodedData", decodedData._id)
+        // const user = await User.findById(decodedData._id);
+        // console.log("User", user.carModelName);
+
         // Check if the user already exists
-        const carExist = await Car.findOne({ carModelName });
-        if (carExist) {
-            return res.status(409).json({ message: 'Car already exists! Please Add Another Car' });
-        }
+        // const carExist = await Car.findOne({ carModelName });
+        // if (carExist) {
+        //     return res.status(409).json({ message: 'Car already exists! Please Add Another Car' });
+        // }
 
         // Create the user in the database
         const car = await Car.create({
@@ -28,12 +44,17 @@ const createCar = async (req, res) => {
             gearType
         });
 
-        const cars = await createCarService(car);
 
-        res.status(200).json({
-            message: "Car Added Successfully",
-            cars: cars
-        })
+
+        res.status(201).json(car);
+
+
+        // const cars = await createCarService(car);
+
+        // res.status(200).json({
+        //     message: "Car Added Successfully",
+        //     cars: cars
+        // })
 
     } catch (error) {
         console.error(error);
