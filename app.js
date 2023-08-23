@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const carRouter = require('./routes/carRouter');
+const userRouter = require('./routes/userRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -9,7 +10,7 @@ const app = express();
 // Connect to the MongoDB database
 mongoose.connect(process.env.MONGODB_CONNECTION, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
+  useUnifiedTopology: false,
 });
 
 // Middleware
@@ -23,10 +24,11 @@ app.use(cors({
 
 // Routes
 app.use('/api/car', carRouter);
+app.use('/api/user', userRouter);
 
 
 // Start the server
-app.listen(3001, '103.161.9.106', () => {
+app.listen(3001, '103.161.9.43', () => {
   console.log('Server started on port 3001');
 });
 
