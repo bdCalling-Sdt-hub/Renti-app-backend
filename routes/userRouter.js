@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -21,5 +21,8 @@ router.post('/banned/:id', isValidUser, bannedUsers);
 
 //Update user
 router.post('/update/:id', isValidUser, updateUser);
+
+//Approve host
+router.post('/approve/:id', isValidUser, approveHost);
 
 module.exports = router;

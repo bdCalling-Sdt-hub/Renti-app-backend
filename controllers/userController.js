@@ -11,7 +11,7 @@ const userTimers = new Map();
 
 const signUp = async (req, res) => {
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image, } = req.body;
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image, role } = req.body;
 
 
         // Check if the user already exists
@@ -36,7 +36,8 @@ const signUp = async (req, res) => {
             RFC,
             creaditCardNumber,
             image,
-            oneTimeCode
+            oneTimeCode,
+            role
         });
 
         // Clear any previous timer for the user (if exists)
@@ -241,5 +242,30 @@ const updateUser = async (req, res) => {
     }
 };
 
+//Approve host
+const approveHost = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findOne({ _id: id, role: 'host' });
+        const admin = await User.findById(req.body.userId);
+        if(!user){
+            res.status(404).json({ message: 'Host not found' });
+        }
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser }
+        if(!admin){
+            res.status(404).json({ message: 'Admin not found' });
+        }else if(admin.role == 'admin'){
+            user.approved = true;
+            await user.save();
+            res.status(200).json({ message: 'Host approved successfully' });
+        }else{
+            res.status(404).json({ message: 'You do not have permission to approve Host' });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error updating user'})
+    }
+};
+
+
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost }

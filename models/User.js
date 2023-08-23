@@ -27,8 +27,9 @@ const userSchema = new mongoose.Schema({
     image: { type: Object, required: false},
     role: { type: String, enum: ['user', 'admin', 'unknown', 'host'], default: 'unknown' },
     emailVerified: { type: Boolean, default: false },
+    approved: { type: Boolean, default: false },
     isBanned: { type: Boolean, default: false },
-    oneTimeCode: { type: String, required: false } 
+    oneTimeCode: { type: String, required: false },
   },{
     toJSON: {
       transform(doc, ret) {
