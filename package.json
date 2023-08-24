@@ -7,7 +7,9 @@
     "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.4.3",
     "nodemailer": "^6.9.4",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "stripe": "^13.2.0",
+    "uuid": "^9.0.0"
   },
   "name": "renti-backend",
   "version": "1.0.0",

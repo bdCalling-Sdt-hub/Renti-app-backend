@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe('pk_test_51NiWAKHloEqm4HcrXhfVfCFSqkb62iaFwp8P4L6QZLPGsNNv5M6k8rn9eO8u0nJzd2jkhm4snzhgErJ0a89Wkqc3001KnPwkNM');
+    </script>
+
+    <title>Payment</title>
+</head>
+
+<body>
+    <form id="payment-form">
+        <input type="text" id="card-number" placeholder="Card Number">
+        <input type="text" id="exp-date" placeholder="MM/YY">
+        <input type="text" id="cvc" placeholder="CVC">
+        <button id="submit-button">Submit Payment</button>
+      </form>
+      
+      <script>
+        document.getElementById('submit-button').addEventListener('click', async () => {
+          const { token, error } = await stripe.createToken('card', {
+            number: document.getElementById('card-number').value,
+            exp_month: document.getElementById('exp-date').value.split('/')[0],
+            exp_year: document.getElementById('exp-date').value.split('/')[1],
+            cvc: document.getElementById('cvc').value
+          });
+      
+          if (error) {
+            console.error(error);
+          } else {
+            // Send the token to your backend API
+            const response = await fetch('103.161.9.43:3001/api/payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ token: token.id })
+            });
+      
+            const result = await response.json();
+            console.log(result);
+          }
+        });
+      </script>
+      
+</body>
+
+</html>
