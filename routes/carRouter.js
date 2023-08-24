@@ -12,8 +12,9 @@ router.get('/all', isValidUser, allCars);
 
 //Get single car
 router.get('/:id', getCarsById);
+
 //Update single car
-router.put('/update/:id', isValidUser, updateById);
+router.post('/update/:id', isValidUser, updateById);
 
 //Delete car
 router.delete('/delete/:id', isValidUser, deleteById);

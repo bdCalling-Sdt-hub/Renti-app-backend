@@ -7,7 +7,7 @@ const User = require("../models/User");
 //Add car
 const createCar = async (req, res) => {
     try {
-        const { carModelName, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
+        const { carModelName, hourlyRate, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
 
         // // Find the user
         const user = await User.findById(req.body.userId);
@@ -29,6 +29,7 @@ const createCar = async (req, res) => {
                 carDoors,
                 carSeats,
                 totalRun,
+                hourlyRate,
                 gearType,
                 carOwner: user._id,
             });
@@ -43,7 +44,7 @@ const createCar = async (req, res) => {
     }
 };
 
-
+//All cars seen by user and admin
 const allCars = async (req, res) => {
     try {
         //Search the users
@@ -75,13 +76,13 @@ const allCars = async (req, res) => {
             res.status(200).json({
                 cars,
                 pagination: {
-                  totalDocuments: count,
-                  totalPage: Math.ceil(count / limit),
-                  currentPage: page,
-                  previousPage: page - 1 > 0 ? page - 1 : null,
-                  nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                    totalDocuments: count,
+                    totalPage: Math.ceil(count / limit),
+                    currentPage: page,
+                    previousPage: page - 1 > 0 ? page - 1 : null,
+                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
                 }
-              });
+            });
         } else {
             res.status(501).json({ message: 'You are not authorized' });
         }
@@ -91,11 +92,11 @@ const allCars = async (req, res) => {
     }
 };
 
-//All cars
+//Single cars
 const getCarsById = async (req, res) => {
     try {
         const id = req.params.id;
-        const car = await getById(id);
+        const car = await Car.findById(id);
         res.status(200).json({
             message: "Car retrieved successfully",
             cars: car
@@ -107,44 +108,55 @@ const getCarsById = async (req, res) => {
             message: err.message
         })
     }
-}
+};
 
 //Update car
 const updateById = async (req, res) => {
     try {
-        const id = req.params.id;
-        console.log("id:", id);
+        const { carModelName, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
+        // const id = req.params.id;
+        // console.log("id:", id);
 
-        const car = await Car.findById(id);
-
-        if (!car) {
-            return res.status(404).json({ message: 'Car not found' });
-        }
-
+        const car = await Car.findById(req.params.id);
         const user = await User.findById(req.body.userId);
+        console.log("meow/meow",car.carOwner)
+        console.log("meow/meow",user._id);
+        console.log("meow/meow",req.body.userId);
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        if(!user){
+            res.status(404).json({message: "User not found"});    
         }
 
-        if (user._id === req.body.userId) {
-            return res.status(403).json({ message: 'Unauthorized to update this car' });
+        if(!car){
+            res.status(404).json({message: "Car not found"});
+        }else if(user._id.equals(car.carOwner)){
+            car.carModelName = carModelName;
+            car.image = image;
+            car.year = year;
+            car.carLicenseNumber = carLicenseNumber
+            car.carDescription = carDescription
+            car.insuranceStartDate = insuranceStartDate
+            car.insuranceEndDate = insuranceStartDate
+            car.carLicenseImage = carLicenseImage;
+            car.carColor = carColor;
+            car.carDoors = carDoors
+            car.carSeats = carSeats
+            car.totalRun = totalRun;
+            car.gearType = gearType;
+
+            await car.save();
+            res.status(200).json({message: 'Car updated successfully'});
+        }else{
+            res.status(401).json({message: 'You are not authorize to update'})
         }
 
-        // Update car data
-        car.set(req.body);
-
-        await car.save();
-
-        res.status(200).json({ message: 'Car updated successfully', car });
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'Error updating car' });
     }
 };
 
-
-
+// Delete car by owner
 const deleteById = async (req, res) => {
     try {
         const id = req.params.id;
@@ -157,7 +169,7 @@ const deleteById = async (req, res) => {
 
         if (!car) {
             return res.status(404).json({ message: 'Car not found' });
-        } else if (user._id.toString() === req.body.userId) {
+        } else if (user._id.equals(car.carOwner)) {
             await car.deleteOne(); // No need to call save after deleteOne
             res.status(200).json({ message: 'Car deleted successfully' });
         } else {
