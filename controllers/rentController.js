@@ -65,7 +65,7 @@ const acceptRentRequest = async (req, res) => {
             res.status(404).json({message: 'Car not found'});
         }
 
-        if(car.carOwner !== req.body.userId){
+        if(car.carOwner.toString() !== req.body.userId){
             res.status(401).json({message: 'You do not have permission'})
         }
 
