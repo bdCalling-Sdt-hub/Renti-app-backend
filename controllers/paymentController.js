@@ -4,20 +4,20 @@ const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
 
 const payment = async (req, res) => {
-    const { product, token } = req.body;
-    const { requestId } = req.params;
-
     try {
+        const { product, token } = req.body;
+        const { requestId } = req.params;
+        
         const rentRequest = await Rent.findById(requestId);
 
-        if(!rentRequest){
-            res.status(404).json({ message: 'Request is not found for payment' });
+        if (!rentRequest) {
+            return res.status(404).json({ message: 'Request is not found for payment' });
         }
 
-        if(req.body.userId !== rentRequest.userId && rentRequest.requestStatus !== "Accepted"){
-            res.status(401).json({ message: 'You  can not payment on this car'});
-        };
-        
+        if (req.body.userId !== rentRequest.userId || rentRequest.requestStatus !== "Accepted") {
+            return res.status(401).json({ message: 'You cannot make a payment on this car' });
+        }
+
         const customer = await stripe.customers.create({
             email: token.email,
             source: token.id,
@@ -45,7 +45,7 @@ const payment = async (req, res) => {
         res.status(200).json({ message: 'Payment success', paymentData });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'An error occurred while processing the payment.' });
+        res.status(500).json({ message: 'An error occurred while processing the payment.', error: error.message });
     }
 };
 
