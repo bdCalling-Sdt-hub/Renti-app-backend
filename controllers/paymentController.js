@@ -9,12 +9,13 @@ const payment = async (req, res) => {
         const { requestId } = req.params;
         
         const rentRequest = await Rent.findById(requestId);
+        console.log(rentRequest.userId);
 
         if (!rentRequest) {
             return res.status(404).json({ message: 'Request is not found for payment' });
         }
 
-        if (req.body.userId !== rentRequest.userId || rentRequest.requestStatus !== "Accepted") {
+        if (req.body.userId !== rentRequest.userId.toString() || rentRequest.requestStatus !== "Accepted") {
             return res.status(401).json({ message: 'You cannot make a payment on this car' });
         }
 
@@ -41,6 +42,9 @@ const payment = async (req, res) => {
         await Payment.create({
             paymentData
         });
+
+        rentRequest.payment = 'Completed';
+        await rentRequest.save();
 
         res.status(200).json({ message: 'Payment success', paymentData });
     } catch (error) {
