@@ -5,6 +5,7 @@ const rentSchema = new mongoose.Schema({
     requestStatus: { type: String, enum: ['Accepted', 'Rejected', 'Pending'], default: 'Pending' },
     startDate: { type: Date, required: [true, 'From Date is Required'] },
     endDate: { type: Date, required: [true, 'To Date is Required'] },
+    payment: { type: String, enum: ['Pending', 'Completed'], default: 'Pending' },
     userId: { type: mongoose.Schema.Types.ObjectId },
     carId: { type: mongoose.Schema.Types.ObjectId },
 }, { timestamps: true },

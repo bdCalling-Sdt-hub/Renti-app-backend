@@ -79,5 +79,4 @@ const acceptRentRequest = async (req, res) => {
 };
 
 
-
 module.exports = {createRentRequest, acceptRentRequest};

@@ -5,6 +5,6 @@ const { isValidUser } = require('../middleWares/auth');
 const { payment, payPage } = require('../controllers/paymentController');
 
 // Sign-up
-router.post('/', payment);
+router.post('/:requestId', isValidUser, payment);
 
 module.exports = router;

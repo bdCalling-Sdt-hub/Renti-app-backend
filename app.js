@@ -30,6 +30,16 @@ app.use('/api/user', userRouter);
 app.use('/api/rent', rentRouter);
 app.use('/api/payment', paymentRouter);
 
+// function callEveryFiveSeconds(callback) {
+//   setInterval(callback, 5000);
+// }
+
+// function myFunction() {
+//   console.log(global);
+// }
+
+// callEveryFiveSeconds(myFunction);
+
 
 // Start the server
 app.listen(3001, '103.161.9.43', () => {
