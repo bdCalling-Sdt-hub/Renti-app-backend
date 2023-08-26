@@ -42,7 +42,7 @@ app.use('/api/payment', paymentRouter);
 
 
 // Start the server
-app.listen(3001, '103.161.9.43', () => {
+app.listen(3001, '103.161.9.106', () => {
   console.log('Server started on port 3001');
 });
 
