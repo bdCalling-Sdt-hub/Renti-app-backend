@@ -5,6 +5,7 @@ const carRouter = require('./routes/carRouter');
 const userRouter = require('./routes/userRouter');
 const rentRouter = require('./routes/rentRouter');
 const paymentRouter = require('./routes/paymentRouter');
+const incomeRouter = require('./routes/incomeRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/car', carRouter);
 app.use('/api/user', userRouter);
 app.use('/api/rent', rentRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/income', incomeRouter);
 
 // function callEveryFiveSeconds(callback) {
 //   setInterval(callback, 5000);

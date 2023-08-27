@@ -7,7 +7,7 @@ const payment = async (req, res) => {
     try {
         const { product, token } = req.body;
         const { requestId } = req.params;
-        
+
         const rentRequest = await Rent.findById(requestId);
         console.log(rentRequest.userId);
 
