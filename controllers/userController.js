@@ -208,18 +208,18 @@ const updateUser = async (req, res) => {
         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image } = req.body;
         const id = req.params.id;
         const user = await User.findById(id);
-        
+
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
+
         // Check if the user already exists
         const userExist = await User.findOne({ email });
-        if (userExist) {
+        if (userExist && userExist._id.toString() !== id) {
             return res.status(409).json({ message: 'User already exists! Please login' });
         }
 
-        
-        if (user._id == req.body.userId) {
+        if (user._id.toString() === req.body.userId) {
             user.fullName = fullName;
             user.email = email;
             user.phoneNumber = phoneNumber;
@@ -232,13 +232,13 @@ const updateUser = async (req, res) => {
             user.creaditCardNumber = creaditCardNumber;
             user.image = image;
             await user.save();
-            res.status(200).json({ message: 'User updated successfully' });
-        }else{
-            res.status(503).json({ message: 'You do not have permission to update'})    
+            return res.status(200).json({ message: 'User updated successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to update' });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Error updating user'})
+        console.error(error);
+        return res.status(500).json({ message: 'Error updating user' });
     }
 };
 
@@ -248,24 +248,25 @@ const approveHost = async (req, res) => {
         const id = req.params.id;
         const user = await User.findOne({ _id: id, role: 'host' });
         const admin = await User.findById(req.body.userId);
-        if(!user){
-            res.status(404).json({ message: 'Host not found' });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Host not found' });
         }
 
-        if(!admin){
-            res.status(404).json({ message: 'Admin not found' });
-        }else if(admin.role == 'admin'){
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        } else if (admin.role === 'admin') {
             user.approved = true;
             await user.save();
-            res.status(200).json({ message: 'Host approved successfully' });
-        }else{
-            res.status(404).json({ message: 'You do not have permission to approve Host' });
+            return res.status(200).json({ message: 'Host approved successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve Host' });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Error updating user'})
+        console.error(error);
+        return res.status(500).json({ message: 'Error updating user' });
     }
 };
 
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost }
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost };

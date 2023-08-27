@@ -97,10 +97,18 @@ const getCarsById = async (req, res) => {
     try {
         const id = req.params.id;
         const car = await Car.findById(id);
-        res.status(200).json({
-            message: "Car retrieved successfully",
-            cars: car
-        })
+        if(!car){
+            res.status(404).json({ message: 'Car not found', error});
+        }
+        console.log(car.carOwner);
+        if(req.body.userId === car.carOwner.toString()){
+            res.status(200).json({
+                message: "Car retrieved successfully",
+                cars: car
+            })
+        }else{
+            res.status(401).json({ message: 'You are not authorized' });
+        }
     }
     catch (err) {
         // console.log(err);

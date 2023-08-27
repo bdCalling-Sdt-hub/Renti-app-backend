@@ -44,7 +44,7 @@ app.use('/api/income', incomeRouter);
 
 
 // Start the server
-app.listen(3001, '103.161.9.106', () => {
+app.listen(3001, '103.161.9.43', () => {
   console.log('Server started on port 3001');
 });
 

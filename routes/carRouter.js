@@ -11,7 +11,7 @@ router.post('/add', isValidUser, createCar);
 router.get('/all', isValidUser, allCars);
 
 //Get single car
-router.get('/:id', getCarsById);
+router.get('/:id', isValidUser, getCarsById);
 
 //Update single car
 router.post('/update/:id', isValidUser, updateById);
