@@ -248,24 +248,25 @@ const approveHost = async (req, res) => {
         const id = req.params.id;
         const user = await User.findOne({ _id: id, role: 'host' });
         const admin = await User.findById(req.body.userId);
-        if(!user){
-            res.status(404).json({ message: 'Host not found' });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Host not found' });
         }
 
-        if(!admin){
-            res.status(404).json({ message: 'Admin not found' });
-        }else if(admin.role == 'admin'){
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        } else if (admin.role === 'admin') {
             user.approved = true;
             await user.save();
-            res.status(200).json({ message: 'Host approved successfully' });
-        }else{
-            res.status(404).json({ message: 'You do not have permission to approve Host' });
+            return res.status(200).json({ message: 'Host approved successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve Host' });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Error updating user'})
+        console.error(error);
+        return res.status(500).json({ message: 'Error updating user' });
     }
 };
 
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost }
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost };
