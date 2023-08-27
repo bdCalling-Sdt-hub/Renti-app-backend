@@ -42,7 +42,8 @@ const createRentRequest = async (req, res) => {
             startDate,
             endDate,
             userId: user._id,
-            carId
+            carId,
+            hostId: car.carOwner
         })
 
         res.status(200).json({ message: 'Rent request successful', rents });
@@ -74,21 +75,19 @@ const acceptRentRequest = async (req, res) => {
         res.status(200).json({ message: 'Request accepted' });
 
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: 'Error accepting rent request', error: error });
     }
 };
 
 const allRentRequest = async (req, res) => {
     try {
-
         const searchTerm = req.params.filter;
         const search = req.query.search || '';
-        console.log(search)
+        console.log(search);
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
-
         const searchRegExp = new RegExp('.*' + search, 'i');
-
         const filter = {
             $or: [
                 { requestStatus: { $regex: searchRegExp } },
@@ -97,45 +96,25 @@ const allRentRequest = async (req, res) => {
         };
 
         const rents = await Rent.find(filter).limit(limit).skip((page - 1) * limit);
-        console.log("rents", rents)
-        const count = await Rent.countDocuments(filter)
+        const count = await Rent.countDocuments(filter);
 
-        if (!rents) {
-            res.status(404).json({ message: 'Rent Request is not found' });
-        }
+        const user = await User.findById(req.body.userId);
 
-        const user = await User.findById(req.body.userId)
         if (!user) {
-            res.status(404).json({ message: 'User is not found' });
+            return res.status(404).json({ message: 'User is not found' });
         }
-
+        console.log(req.body.userId);
         if (user.role === 'host') {
-            res.status(404).json({
-                message: "You do not have permission to"
-            })
+            const rentRequest = await Rent.find({hostId: req.body.userId});
+            console.log(rentRequest);
+            return res.status(200).json({
+                message: "Your rent request", rentRequest
+            });
         }
 
         if (user.role === 'admin') {
-            res.status(200).json({
+            return res.status(200).json({
                 rents,
-                pagination: {
-                    totalDocuments: count,
-                    totalPage: Math.ceil(count / limit),
-                    currentPage: page,
-                    previousPage: page - 1 > 0 ? page - 1 : null,
-                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null
-                }
-            })
-        }
-
-        if (user.role === 'user') {
-            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit)
-            const count = await Rent.countDocuments({
-                userId: user._id,
-                ...filter
-            })
-            res.status(200).json({
-                userWiseRent,
                 pagination: {
                     totalDocuments: count,
                     totalPage: Math.ceil(count / limit),
@@ -145,18 +124,31 @@ const allRentRequest = async (req, res) => {
                 }
             });
         }
-        else {
-            res.status(501).json({ message: 'You are not authorized' });
+
+        if (user.role === 'user') {
+            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit);
+            const userCount = await Rent.countDocuments({ userId: user._id, ...filter });
+            return res.status(200).json({
+                userWiseRent,
+                pagination: {
+                    totalDocuments: userCount,
+                    totalPage: Math.ceil(userCount / limit),
+                    currentPage: page,
+                    previousPage: page - 1 > 0 ? page - 1 : null,
+                    nextPage: page + 1 <= Math.ceil(userCount / limit) ? page + 1 : null
+                }
+            });
         }
 
-    }
-    catch (err) {
-        res.status(500).json({
+        return res.status(501).json({ message: 'You are not authorized' });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
             message: err.message
-        }
-        )
+        });
     }
-}
+};
 
 const getRentById = async (req, res) => {
     try {

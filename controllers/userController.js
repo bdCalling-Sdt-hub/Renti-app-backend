@@ -208,18 +208,18 @@ const updateUser = async (req, res) => {
         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image } = req.body;
         const id = req.params.id;
         const user = await User.findById(id);
-        
+
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
+
         // Check if the user already exists
         const userExist = await User.findOne({ email });
-        if (userExist) {
+        if (userExist && userExist._id.toString() !== id) {
             return res.status(409).json({ message: 'User already exists! Please login' });
         }
 
-        
-        if (user._id == req.body.userId) {
+        if (user._id.toString() === req.body.userId) {
             user.fullName = fullName;
             user.email = email;
             user.phoneNumber = phoneNumber;
@@ -232,13 +232,13 @@ const updateUser = async (req, res) => {
             user.creaditCardNumber = creaditCardNumber;
             user.image = image;
             await user.save();
-            res.status(200).json({ message: 'User updated successfully' });
-        }else{
-            res.status(503).json({ message: 'You do not have permission to update'})    
+            return res.status(200).json({ message: 'User updated successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to update' });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Error updating user'})
+        console.error(error);
+        return res.status(500).json({ message: 'Error updating user' });
     }
 };
 

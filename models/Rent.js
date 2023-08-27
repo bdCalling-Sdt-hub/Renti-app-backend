@@ -8,6 +8,7 @@ const rentSchema = new mongoose.Schema({
     payment: { type: String, enum: ['Pending', 'Completed'], default: 'Pending' },
     userId: { type: mongoose.Schema.Types.ObjectId },
     carId: { type: mongoose.Schema.Types.ObjectId },
+    hostId: { type: mongoose.Schema.Types.ObjectId },
 }, { timestamps: true },
 
 );
