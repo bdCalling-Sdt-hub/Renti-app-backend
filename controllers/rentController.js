@@ -152,6 +152,7 @@ const allRentRequest = async (req, res) => {
 const getRentById = async (req, res) => {
     try {
         const id = req.params.id;
+        console.log(id);
 
         const rents = await Rent.findById(id);
 
@@ -271,7 +272,7 @@ const deleteRentById = async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Error deleting Rent' });
     }
-}
+};
 
 
 
