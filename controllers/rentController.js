@@ -1,6 +1,7 @@
 const Rent = require("../models/Rent");
 const User = require("../models/User");
 const Car = require("../models/Car");
+const { updateById } = require("./carController");
 
 const createRentRequest = async (req, res) => {
     try {
@@ -17,10 +18,8 @@ const createRentRequest = async (req, res) => {
         const fromDate = new Date(startDate);
         const toDate = new Date(endDate);
 
-        // Calculate the time difference in milliseconds
         const timeDiff = toDate - fromDate;
 
-        // Calculate hours and minutes
         const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
         const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -161,8 +160,28 @@ const allRentRequest = async (req, res) => {
 const getRentById = async (req, res) => {
     try {
         const id = req.params.id;
+
         const rents = await Rent.findById(id);
-        console.log(rents)
+
+        if (!rents) {
+            res.status(404).json({ message: 'Rent Request is not found' });
+        }
+
+        const user = await User.findById(req.body.userId)
+        if (!user) {
+            res.status(404).json({ message: 'User is not found' });
+        }
+
+        if (rents.userId.toString() !== req.body.userId) {
+            res.status(404).json({ message: "User Not Matching" })
+        }
+
+        if (user.role === 'host') {
+            res.status(404).json({
+                message: "You do not have permission to"
+            })
+        }
+
         res.status(200).json({
             message: "Rent retrieved successfully",
             rents: rents
@@ -176,6 +195,92 @@ const getRentById = async (req, res) => {
     }
 }
 
+const updateRentById = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const rents = await Rent.findById(id);
+
+        const car = await Car.findById(rents.carId);
+
+        const user = await User.findById(req.body.userId)
+
+        const hourlyRate = car.hourlyRate;
+
+        const fromDate = new Date(req.body.startDate);
+        const toDate = new Date(req.body.endDate);
+
+        const timeDiff = toDate - fromDate;
+
+        const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+
+        const updateTotalAmount = Number(hourlyRate) * totalHours
 
 
-module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById };
+        if (!rents) {
+            res.status(404).json({ message: "Rents is not found" })
+        }
+
+        if (!user) {
+            res.status(404).json({ message: 'User is not found' });
+        }
+
+        if (rents.userId.toString() !== req.body.userId) {
+            res.status(404).json({ message: "User Not Matching" })
+        }
+
+        if (user.role === 'host') {
+            res.status(404).json({
+                message: "You do not have permission to update this"
+            })
+        }
+
+        const document = {
+            startDate: req.body.startDate,
+            endDate: req.body.endDate,
+            totalAmount: updateTotalAmount
+        };
+
+        const options = { new: true };
+
+        const rent = await Rent.findByIdAndUpdate(id, document, options);
+        res.status(200).json({
+            message: "Rent Request update successful",
+            rent
+        })
+    }
+    catch (err) {
+        res.status(500).json({
+            message: err.message
+        })
+    }
+}
+
+const deleteRentById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findById(req.body.userId);
+        const rent = await Rent.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!rent) {
+            return res.status(404).json({ message: 'Rent not found' });
+        } else if (user._id.equals(rent.userId)) {
+            await rent.deleteOne();
+            res.status(200).json({ message: 'Rent deleted successfully' });
+        } else {
+            res.status(403).json({ message: 'You are not authorized to delete this Rent' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error deleting Rent' });
+    }
+}
+
+
+
+module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById };
