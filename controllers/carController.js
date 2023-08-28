@@ -2,6 +2,7 @@ const Car = require("../models/Car");
 const jwt = require('jsonwebtoken');
 const { createCarService, getCarsService, getById, update, remove, getsSearchByName } = require("../services/CarService");
 const User = require("../models/User");
+const Rent = require("../models/Rent");
 
 
 //Add car
@@ -65,6 +66,12 @@ const allCars = async (req, res) => {
         const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit);
         const count = await Car.countDocuments(filter);
 
+        const totalCar = cars.length;
+
+        const reservedCar = await Rent.countDocuments({ payment: "Completed" });
+
+        const activeCar = totalCar - reservedCar
+
         const user = await User.findById(req.body.userId);
         if (!cars) {
             res.status(404).json({ message: 'Car not found' });
@@ -74,6 +81,9 @@ const allCars = async (req, res) => {
             res.status(404).json({ message: 'User not found' });
         } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
             res.status(200).json({
+                totalCar,
+                activeCar,
+                reservedCar,
                 cars,
                 pagination: {
                     totalDocuments: count,
@@ -97,16 +107,16 @@ const getCarsById = async (req, res) => {
     try {
         const id = req.params.id;
         const car = await Car.findById(id);
-        if(!car){
-            res.status(404).json({ message: 'Car not found', error});
+        if (!car) {
+            res.status(404).json({ message: 'Car not found', error });
         }
         console.log(car.carOwner);
-        if(req.body.userId === car.carOwner.toString()){
+        if (req.body.userId === car.carOwner.toString()) {
             res.status(200).json({
                 message: "Car retrieved successfully",
                 cars: car
             })
-        }else{
+        } else {
             res.status(401).json({ message: 'You are not authorized' });
         }
     }
@@ -127,17 +137,17 @@ const updateById = async (req, res) => {
 
         const car = await Car.findById(req.params.id);
         const user = await User.findById(req.body.userId);
-        console.log("meow/meow",car.carOwner)
-        console.log("meow/meow",user._id);
-        console.log("meow/meow",req.body.userId);
+        console.log("meow/meow", car.carOwner)
+        console.log("meow/meow", user._id);
+        console.log("meow/meow", req.body.userId);
 
-        if(!user){
-            res.status(404).json({message: "User not found"});    
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
         }
 
-        if(!car){
-            res.status(404).json({message: "Car not found"});
-        }else if(user._id.equals(car.carOwner)){
+        if (!car) {
+            res.status(404).json({ message: "Car not found" });
+        } else if (user._id.equals(car.carOwner)) {
             car.carModelName = carModelName;
             car.image = image;
             car.year = year;
@@ -153,9 +163,9 @@ const updateById = async (req, res) => {
             car.gearType = gearType;
 
             await car.save();
-            res.status(200).json({message: 'Car updated successfully'});
-        }else{
-            res.status(401).json({message: 'You are not authorize to update'})
+            res.status(200).json({ message: 'Car updated successfully' });
+        } else {
+            res.status(401).json({ message: 'You are not authorize to update' })
         }
 
     } catch (err) {

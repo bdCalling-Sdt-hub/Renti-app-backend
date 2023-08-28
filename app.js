@@ -5,7 +5,7 @@ const carRouter = require('./routes/carRouter');
 const userRouter = require('./routes/userRouter');
 const rentRouter = require('./routes/rentRouter');
 const paymentRouter = require('./routes/paymentRouter');
-const incomeRouter = require('./routes/incomeRouter');
+const incomeRouter = require('./routes/dashboardRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -30,7 +30,7 @@ app.use('/api/car', carRouter);
 app.use('/api/user', userRouter);
 app.use('/api/rent', rentRouter);
 app.use('/api/payment', paymentRouter);
-app.use('/api/income', incomeRouter);
+app.use('/api/dashboard', incomeRouter);
 
 // function callEveryFiveSeconds(callback) {
 //   setInterval(callback, 5000);
@@ -44,7 +44,8 @@ app.use('/api/income', incomeRouter);
 
 
 // Start the server
-app.listen(3001, '103.161.9.43', () => {
+
+app.listen(3001, '103.161.9.106', () => {
   console.log('Server started on port 3001');
 });
 
