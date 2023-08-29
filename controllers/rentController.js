@@ -2,6 +2,8 @@ const Rent = require("../models/Rent");
 const User = require("../models/User");
 const Car = require("../models/Car");
 const { updateById } = require("./carController");
+const Payment = require("../models/Payment");
+const { payment } = require("./paymentController");
 
 const createRentRequest = async (req, res) => {
     try {
@@ -99,13 +101,47 @@ const allRentRequest = async (req, res) => {
 
         const user = await User.findById(req.body.userId);
 
+        // Renti Information
+        const rentRejected = await Rent.find({ requestStatus: "Rejected" })
+        if (!rentRejected) {
+            return res.status(400).json({ message: "Renti Canceled not found" })
+        }
+
+        const totalRejectedAmount = rentRejected.reduce((total, rent) => total + Number(rent.totalAmount), 0);
+
+        // Rent Reserved ----Start
+        const reservedCars = await Car.find({ tripStatus: "Start" })
+
+        if (!reservedCars) {
+            return res.status(401).json({ message: "Rents Reserved Amount is not found" })
+        }
+        const carPaymentIds = reservedCars.map(car => car.paymentId);
+
+        const paymentData = await Payment.find({ _id: { $in: carPaymentIds } });
+
+        const rentReservedTotalAmount = paymentData.reduce((total, payment) => total + payment.paymentData.amount, 0);
+
+
+        // Rent Complete
+        const completedCars = await Car.find({ tripStatus: "End" })
+
+        if (!completedCars) {
+            return res.status(401).json({ message: "Rents Completed Amount is not found" })
+        }
+        const carCompletedPaymentIds = completedCars.map(car => car.paymentId);
+
+        const completedPaymentData = await Payment.find({ _id: { $in: carCompletedPaymentIds } });
+
+        const rentCompletedTotalAmount = completedPaymentData.reduce((total, payment) => total + payment.paymentData.amount, 0);
+
+
         if (!user) {
             return res.status(404).json({ message: 'User is not found' });
         }
         console.log(req.body.userId);
         if (user.role === 'host') {
-            const rentRequest = await Rent.find({hostId: req.body.userId});
-            console.log(rentRequest);
+            const rentRequest = await Rent.find({ hostId: req.body.userId });
+            // console.log(rentRequest);
             return res.status(200).json({
                 message: "Your rent request", rentRequest
             });
@@ -113,6 +149,9 @@ const allRentRequest = async (req, res) => {
 
         if (user.role === 'admin') {
             return res.status(200).json({
+                rentCompletedTotalAmount,
+                rentReservedTotalAmount,
+                totalRejectedAmount,
                 rents,
                 pagination: {
                     totalDocuments: count,
@@ -274,6 +313,105 @@ const deleteRentById = async (req, res) => {
     }
 };
 
+// const startTrip = async (req, res) => {
+//     try {
+//         const { startDate, endDate, tripStatus } = req.body;
+//         console.log(startDate, endDate);
+
+//         const { carId } = req.params;
+
+//         const user = await User.findById(req.body.userId);
+//         const car = await Car.findById(req.params.carId);
+
+//         const hourlyRate = car.hourlyRate;
+
+//         const fromDate = new Date(startDate);
+//         const toDate = new Date(endDate);
+
+//         const timeDiff = toDate - fromDate;
+
+//         const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
+//         const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
 
-module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById };
+//         const totalAmount = Number(hourlyRate) * totalHours
+
+//         if (!user) {
+//             res.status(404).json({ message: 'You do not have permission to' });
+//         }
+
+//         if (user.role !== "user") {
+//             res.status(401).json({ message: "Invalid role" });
+//         }
+
+//         const rentRequest = await Rent.findOne({ userId: user._id });
+//         console.log("rentRequest", rentRequest);
+
+//         if (!rentRequest) {
+//             return res.status(404).json({ message: 'Request is not found for Start Trip' });
+//         }
+
+//         if (req.body.userId !== rentRequest.userId.toString() && rentRequest.requestStatus !== "Accepted") {
+//             return res.status(401).json({ message: 'You cannot start trip on this car' });
+//         }
+
+//         if (rentRequest.payment !== "Completed") {
+//             return res.status(401).json({ message: 'Your payment is not Completed' });
+//         }
+
+//         car.tripStatus = tripStatus;
+
+//         await car.save()
+
+//         res.status(200).json({ message: `Trip ${tripStatus}`, car });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: "Error creating car", error: error })
+//     }
+// };
+
+const startTrip = async (req, res) => {
+    const requestId = req.params.requestId;
+    try {
+
+        const { tripStatus } = req.body;
+
+        const user = await User.findById(req.body.userId);
+        const rent = await Rent.findOne({ _id: requestId });
+
+        if (!rent) {
+            return res.status(404).json({ message: 'Rent request not found' });
+        }
+
+        if (user._id.toString() !== rent.userId.toString()) {
+            return res.status(401).json({ message: 'You cannot start a trip for this car' });
+        }
+
+        if (rent.requestStatus !== 'Accepted') {
+            return res.status(401).json({ message: 'Your rent request is not accepted' });
+        }
+
+        if (rent.payment !== 'Completed') {
+            return res.status(401).json({ message: 'Your payment is not completed' });
+        }
+
+        const car = await Car.findById(rent.carId);
+
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        car.tripStatus = tripStatus;
+        await car.save();
+
+        res.status(200).json({ message: `Trip ${tripStatus} successfully` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error starting trip' });
+    }
+};
+
+
+
+
+module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById, startTrip };

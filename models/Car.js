@@ -16,8 +16,10 @@ const carSchema = new mongoose.Schema({
     totalRun: { type: String, required: false },
     hourlyRate: { type: String, required: true },
     gearType: { type: String, enum: ['Baby Car Seat', 'Sunroof', 'Bluetooth', 'GPS'], default: 'Baby Car Seat' },
-    activeReserve: { type: Boolean, required: false, default: 'false'},
+    activeReserve: { type: Boolean, required: false, default: 'false' },
+    tripStatus: { type: String, enum: ['Start', 'End', 'Pending'], default: 'Pending' },
     carOwner: { type: mongoose.Schema.Types.ObjectId },
+    paymentId: { type: mongoose.Schema.Types.ObjectId },
 },
     { timestamps: true },
 

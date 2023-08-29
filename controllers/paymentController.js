@@ -2,6 +2,8 @@ const stripe = require('stripe')('sk_test_51NiWAKHloEqm4Hcr2bW9Od8OZL1ySHO48Nmyq
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
+const Car = require('../models/Car');
+
 
 const payment = async (req, res) => {
     try {
@@ -9,13 +11,12 @@ const payment = async (req, res) => {
         const { requestId } = req.params;
 
         const rentRequest = await Rent.findById(requestId);
-        console.log(rentRequest.userId);
 
         if (!rentRequest) {
             return res.status(404).json({ message: 'Request is not found for payment' });
         }
 
-        if (req.body.userId !== rentRequest.userId.toString() || rentRequest.requestStatus !== "Accepted") {
+        if (req.body.userId !== rentRequest.userId.toString() && rentRequest.requestStatus !== "Accepted") {
             return res.status(401).json({ message: 'You cannot make a payment on this car' });
         }
 
@@ -39,9 +40,15 @@ const payment = async (req, res) => {
         });
 
         // Save payment data to the MongoDB collection 'paymentData'
-        await Payment.create({
-            paymentData
+        const createdPayment = await Payment.create({
+            paymentData,
+            carId: rentRequest.carId
         });
+
+        // Update the Car model with the paymentId
+        const carToUpdate = await Car.findById(rentRequest.carId);
+        carToUpdate.paymentId = createdPayment._id; // Store the payment ID
+        await carToUpdate.save();
 
         rentRequest.payment = 'Completed';
         await rentRequest.save();
@@ -52,6 +59,7 @@ const payment = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while processing the payment.', error: error.message });
     }
 };
+
 
 
 module.exports = { payment };
