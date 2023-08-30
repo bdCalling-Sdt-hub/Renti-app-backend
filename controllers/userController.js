@@ -148,18 +148,18 @@ const allUsers = async (req, res) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
         const users = await User.find();
-        
-        if (!admin){
+
+        if (!admin) {
             res.status(404).json({ message: 'You are not authorized person' });
-        }else if(admin.role === 'admin'){
-            res.status(200).json({message: 'User Found Successfylly', users})
-        }else if(!users ){
-            res.status(404).json({message: 'User Not Found'});
-        }else{
-            res.status(501).json({message: 'You are not authorized to access the resources'});
+        } else if (admin.role === 'admin') {
+            res.status(200).json({ message: 'User Found Successfylly', users })
+        } else if (!users) {
+            res.status(404).json({ message: 'User Not Found' });
+        } else {
+            res.status(501).json({ message: 'You are not authorized to access the resources' });
         }
     } catch (error) {
-        
+
     }
 };
 
@@ -167,6 +167,7 @@ const allUsers = async (req, res) => {
 const bannedUsers = async (req, res) => {
     try {
         // Step 1: Fetch the admin and user information
+        const { isApprove } = req.body;
         const adminId = req.body.userId;
         const admin = await User.findOne({ _id: adminId });
         const userId = req.params.id;
@@ -181,26 +182,46 @@ const bannedUsers = async (req, res) => {
         }
 
         // Step 3: Check if user is already banned
-        if (user.isBanned === true) {
-            return res.status(403).json({ message: 'User is already banned' });
-        }
+        // if (user.isBanned === true) {
+        //     return res.status(403).json({ message: 'User is already banned' });
+        // }
 
         // Step 4: Check if the requester is an admin
         if (admin.role !== 'admin') {
             return res.status(403).json({ message: 'You are not authorized' });
         }
 
+        if (isApprove === "approve") {
+            user.isBanned = "false";
+            await user.save();
+        } else if (isApprove === "cancel") {
+            user.isBanned = 'true';
+            await user.save();
+        }
+
         // Step 5: Ban the user
-        user.isBanned = true;
-        await user.save();
+
+
+
 
         // Step 6: Respond with success message
-        res.status(200).json({ message: 'User successfully banned' });
+        res.status(200).json({ message: `User ${isApprove} Successfully` });
     } catch (error) {
         // Step 7: Handle errors
         res.status(500).json({ message: 'Error while banning user', error });
     }
 };
+
+// All Banned Users
+const allBannedUsers = async (req, res) => {
+    try {
+        const bannedUsers = await User.find({ isBanned: true });
+
+        res.status(200).json({ message: 'Banned User Retrieve Successfully', bannedUsers });
+    } catch (error) {
+        res.status(500).json({ message: 'Error while fetching banned users', error });
+    }
+}
 
 //Update user
 const updateUser = async (req, res) => {
@@ -268,5 +289,133 @@ const approveHost = async (req, res) => {
     }
 };
 
+// Change Password
+const changePassword = async (req, res) => {
+    const { email, password, newPassword, reTypedPassword } = req.body;
+    try {
+        const user = await User.findOne({ email })
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost };
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log(passwordMatch)
+
+        if (!passwordMatch) {
+            return res.status(401).json({ message: 'Current password is incorrect' });
+        }
+
+        if (newPassword !== reTypedPassword) {
+            return res.status(400).json({ message: 'New password and re-typed password do not match' });
+        }
+
+        user.password = newPassword;
+        await user.save()
+
+        console.log(user)
+
+        res.status(200).json({
+            message: 'Password changed successfully',
+            user
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: 'An error occurred' });
+    }
+}
+
+const forgetPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        console.log(email)
+
+        // Check if the user already exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        // Generate OTC (One-Time Code)
+        const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+        // Store the OTC and its expiration time in the database
+        user.oneTimeCode = oneTimeCode;
+        await user.save();
+
+        // Prepare email for password reset
+        const emailData = {
+            email,
+            subject: 'Password Reset Email',
+            html: `
+        <h1>Hello, ${user.fullName}</h1>
+        <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
+        <small>This Code is valid for 3 minutes</small>
+      `
+        }
+
+        // Send email
+        try {
+            await emailWithNodemailer(emailData);
+        } catch (emailError) {
+            console.error('Failed to send verification email', emailError);
+        }
+
+        // Set a timeout to update the oneTimeCode to null after 1 minute
+        setTimeout(async () => {
+            try {
+                user.oneTimeCode = null;
+                await user.save();
+                console.log('oneTimeCode reset to null after 3 minute');
+            } catch (error) {
+                console.error('Error updating oneTimeCode:', error);
+            }
+        }, 180000); // 3 minute in milliseconds
+
+        res.status(201).json({ message: 'Sent One Time Code successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error sending mail', error });
+    }
+};
+
+//Verify one time code
+const verifyOneTimeCode = async (req, res) => {
+    try {
+        const { email } = req.headers;
+        const { oneTimeCode } = req.body;
+        console.log(req.body.oneTimeCode);
+        console.log(email);
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(40).json({ message: 'User not found' });
+        } else if (user.oneTimeCode === oneTimeCode) {
+            res.status(200).json({ success: true, message: 'User verified successfully' });
+        } else {
+            res.status(400).json({ success: false, message: 'Failed to verify user' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error verifiying mail', error });
+    }
+};
+
+//Update password without login
+const updatePassword = async (req, res) => {
+    try {
+        const { email } = req.headers;
+        console.log(req.body.password);
+        console.log(email);
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        } else {
+            user.password = req.body.password;
+            await user.save();
+            res.status(200).json({ message: 'Password updated successfully' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating password', error });
+    }
+};
+
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword };
