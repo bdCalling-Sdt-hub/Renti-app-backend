@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
 const Car = require('../models/Car');
+const User = require('../models/User');
 
 
 const payment = async (req, res) => {
@@ -10,6 +11,8 @@ const payment = async (req, res) => {
         const { product, token } = req.body;
         const { requestId } = req.params;
 
+        const user = await User.findById(req.body.userId)
+        console.log(user)
         const rentRequest = await Rent.findById(requestId);
 
         if (!rentRequest) {
@@ -42,6 +45,7 @@ const payment = async (req, res) => {
         // Save payment data to the MongoDB collection 'paymentData'
         const createdPayment = await Payment.create({
             paymentData,
+            userId: user._id,
             carId: rentRequest.carId
         });
 

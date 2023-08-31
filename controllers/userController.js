@@ -4,6 +4,8 @@ var bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const signUpService = require("../services/userService");
 const { createJSONWebToken } = require("../helpers/jsonWebToken");
+const Car = require("../models/Car");
+const Payment = require("../models/Payment");
 
 
 // Define a map to store user timers for sign up requests
@@ -143,25 +145,174 @@ const signIn = async (req, res) => {
     }
 };
 
+
 //All users
 const allUsers = async (req, res) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
-        const users = await User.find();
+        // const users = await User.find();
+
+        const userTypes = req.params.filter;
+        const search = req.query.search || '';
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const searchRegExp = new RegExp('.*' + search + '.*', 'i');
+        const filter = {
+            $or: [
+                { fullname: { $regex: searchRegExp } },
+                { email: { $regex: searchRegExp } },
+                { phoneNumber: { $regex: searchRegExp } },
+                { address: { $regex: searchRegExp } },
+            ]
+        }
+
+        const users = await User.find(filter).limit(limit).skip((page - 1) * limit);
+        const count = await User.countDocuments(filter);
 
         if (!admin) {
-            res.status(404).json({ message: 'You are not authorized person' });
+            return res.status(404).json({ message: 'You are not authorized person' });
         } else if (admin.role === 'admin') {
-            res.status(200).json({ message: 'User Found Successfylly', users })
+            return res.status(200).json({
+                message: 'User Found Successfylly',
+                users,
+                pagination: {
+                    totalDocuments: count,
+                    totalPage: Math.ceil(count / limit),
+                    currentPage: page,
+                    previousPage: page - 1 > 0 ? page - 1 : null,
+                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                }
+            })
         } else if (!users) {
-            res.status(404).json({ message: 'User Not Found' });
+            return res.status(404).json({ message: 'User Not Found' });
         } else {
-            res.status(501).json({ message: 'You are not authorized to access the resources' });
+            res.status(501).json({
+                message: 'You are not authorized to access the resources',
+            });
         }
     } catch (error) {
-
+        res.status(500).json({ message: "User Retrieved Error" })
     }
 };
+
+// All Host
+const allHosts = async (req, res) => {
+    try {
+        const admin = await User.findOne({ _id: req.body.userId });
+        console.log(admin);
+
+        if (!admin) {
+            return res.status(404).json({ message: 'You are not an authorized person' });
+        }
+
+        if (admin.role !== 'admin') {
+            return res.status(404).json({ message: 'You are not an admin' });
+        }
+
+        const allHostsQuery = User.find({ role: "host" });
+
+        const search = req.query.search || '';
+        if (search) {
+            allHostsQuery.where('fullName').regex(new RegExp('.*' + search + '.*', 'i'));
+        }
+
+        const allHosts = await allHostsQuery;
+
+        const carList = await Car.find({}); // Fetch all cars
+
+        const hostCarCounts = {}; // Create an object to store host car counts
+
+        for (const car of carList) {
+            if (hostCarCounts[car.carOwner]) {
+                hostCarCounts[car.carOwner]++;
+            } else {
+                hostCarCounts[car.carOwner] = 1;
+            }
+        }
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedHosts = allHosts.slice(startIndex, endIndex);
+        const hostData = paginatedHosts.map(host => ({
+            carCount: hostCarCounts[host._id] || 0,
+            host,
+        }));
+
+        res.status(200).json({
+            message: "Host Data Retrieved Successfully",
+            hostData,
+            pagination: {
+                totalHosts: allHosts.length,
+                totalPage: Math.ceil(allHosts.length / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(allHosts.length / limit) ? page + 1 : null,
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "All Hosts Retrieving Failed" });
+    }
+};
+
+// All User With Trip Amount
+const allUsersWithTripAmount = async (req, res) => {
+    try {
+        const admin = await User.findOne({ _id: req.body.userId });
+
+        if (!admin || admin.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to access this data' });
+        }
+
+        const search = req.query.search || '';
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const filter = {
+            role: "user",
+            fullName: { $regex: new RegExp('.*' + search + '.*', 'i') }
+        };
+
+        const totalCount = await User.countDocuments(filter);
+        const totalPages = Math.ceil(totalCount / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const allUsers = await User.find(filter).skip(startIndex).limit(limit);
+        console.log("object", allUsers);
+
+        const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
+            const payments = await Payment.find({ userId: user._id });
+            const totalTripAmount = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
+            return {
+                totalTripAmount: totalTripAmount,
+                user
+            };
+        }));
+
+        res.status(200).json({
+            message: "User Data Retrieved Successfully",
+            usersWithTripAmount,
+            pagination: {
+                totalUsers: totalCount,
+                totalPages: totalPages,
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= totalPages ? page + 1 : null,
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "User Data Retrieving Failed" });
+    }
+};
+
+
 
 //Banned users
 const bannedUsers = async (req, res) => {
@@ -253,7 +404,7 @@ const updateUser = async (req, res) => {
             user.creaditCardNumber = creaditCardNumber;
             user.image = image;
             await user.save();
-            return res.status(200).json({ message: 'User updated successfully' });
+            return res.status(200).json({ message: 'User updated successfully', user });
         } else {
             return res.status(403).json({ message: 'You do not have permission to update' });
         }
@@ -418,4 +569,4 @@ const updatePassword = async (req, res) => {
     }
 };
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword };
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount };

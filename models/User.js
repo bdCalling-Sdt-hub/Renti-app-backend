@@ -30,13 +30,13 @@ const userSchema = new mongoose.Schema({
   approved: { type: Boolean, default: false },
   isBanned: { type: Boolean, default: false },
   oneTimeCode: { type: String, required: false },
-}, {
+}, { timestamps: true }, {
   toJSON: {
     transform(doc, ret) {
       delete ret.password;
     },
   },
-}, { timestamps: true },
+},
 
 );
 

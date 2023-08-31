@@ -11,15 +11,17 @@ const isValidUser = async (req, res, next) => {
             console.log(token);
             decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
             console.log(decodedData);
-        }else if(!authorization){
-            res.status(403).json({ error: 'Unauthorized'});
-        }else if(!decodedData){
-            res.status(403).json({ error: 'Unauthorized'});
+        } else if (!authorization) {
+            res.status(403).json({ error: 'Unauthorized' });
+        } else if (!decodedData) {
+            res.status(403).json({ error: 'Unauthorized' });
         }
         req.body.userId = decodedData._id;
         next();
     } catch (error) {
-        return next(error);
+        console.log("hhh", error.message)
+        return res.status(500).json({ message: "User invalid" });
+
     }
 };
 
