@@ -1,11 +1,15 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
+const configureFileUpload = require('../middleWares/fileUploads');
+
+const upload = configureFileUpload();
+
 // Sign-up
-router.post('/signup', signUp);
+router.post('/signup', upload, signUp);
 
 // verify Email
 router.post('/verify', verifyEmail);
@@ -17,6 +21,8 @@ router.post('/sign-in', signIn);
 router.get('/all', isValidUser, allUsers);
 
 router.get('/all-host', isValidUser, allHosts);
+
+router.get('/all-user-info', isValidUser, allUserInfo);
 
 router.get('/all-user', isValidUser, allUsersWithTripAmount);
 
@@ -44,5 +50,6 @@ router.post('/verify-code', verifyOneTimeCode);
 // Verify otp
 router.post('/update-password', updatePassword);
 
+router.get('/host-kyc', hostKyc)
 
 module.exports = router;

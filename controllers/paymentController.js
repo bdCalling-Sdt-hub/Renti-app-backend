@@ -12,7 +12,7 @@ const payment = async (req, res) => {
         const { requestId } = req.params;
 
         const user = await User.findById(req.body.userId)
-        console.log(user)
+
         const rentRequest = await Rent.findById(requestId);
 
         if (!rentRequest) {
@@ -46,7 +46,8 @@ const payment = async (req, res) => {
         const createdPayment = await Payment.create({
             paymentData,
             userId: user._id,
-            carId: rentRequest.carId
+            carId: rentRequest.carId,
+            rentId: rentRequest,
         });
 
         // Update the Car model with the paymentId

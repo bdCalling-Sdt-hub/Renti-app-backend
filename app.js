@@ -7,6 +7,7 @@ const rentRouter = require('./routes/rentRouter');
 const paymentRouter = require('./routes/paymentRouter');
 const dashBoardRouter = require('./routes/dashboardRouter');
 const incomeRouter = require('./routes/incomeRouter');
+const aboutRouter = require('./routes/aboutRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -34,6 +35,9 @@ app.use('/api/rent', rentRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/dashboard', dashBoardRouter);
 app.use('/api/income', incomeRouter);
+app.use('/api/about', aboutRouter);
+
+app.use('/upload', express.static(__dirname + '/public/uploads/kyc'))
 
 // function callEveryFiveSeconds(callback) {
 //   setInterval(callback, 5000);

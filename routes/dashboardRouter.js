@@ -1,7 +1,7 @@
 // routes/auth.js
 const express = require('express');
 const router = express.Router();
-const { totalIncome, rentsStatus, allEarnings } = require('../controllers/dashboardController');
+const { totalIncome, rentsStatus, allEarnings, aboutUs } = require('../controllers/dashboardController');
 const { isValidUser } = require('../middleWares/auth');
 
 router.get('/income', isValidUser, totalIncome);

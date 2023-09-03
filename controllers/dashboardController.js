@@ -1,3 +1,5 @@
+const About = require('../models/About');
+const Car = require('../models/Car');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
 const User = require('../models/User');
@@ -44,12 +46,20 @@ const totalIncome = async (req, res) => {
             0
         );
 
+
+
         // Monthly Income
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Intl.DateTimeFormat('en-US', options).format(date);
+        }
+
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
         firstDayOfMonth.setHours(0, 0, 0, 0);
 
+        // Find payments created within the current month
         const monthlyPayments = await Payment.find({
-            createdAt: { $gte: firstDayOfMonth, $lte: today }
+            createdAt: { $gte: formatDate(firstDayOfMonth), $lte: formatDate(today) }
         });
 
         const totalMonthlyIncome = monthlyPayments.reduce(
@@ -117,10 +127,14 @@ const rentsStatus = async (req, res) => {
             rent.payment === 'Completed'
         )
 
+        const tripCompleted = await Car.find({ tripStatus: "End" })
+        // console.log("tripCompleted", tripCompleted)
+
         res.status(200).json({
             todayRents,
             pendingRents,
-            totalOnGoing
+            totalOnGoing,
+            tripCompleted
         });
     } catch (error) {
         console.error('Error fetching rents:', error);
@@ -135,13 +149,17 @@ const allEarnings = async (req, res) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
 
+
         if (rentType === 'all') {
             const permittedUser = await User.findById(req.body.userId);
 
             const allEarning = await Payment.find({})
                 .limit(limit)
                 .skip((page - 1) * limit)
-                .sort({ createdAt: 1 });
+                .sort({ createdAt: -1 })
+                .populate('userId', '')
+                .populate('carId', '')
+                .populate('rentId', '');
             const count = await Payment.countDocuments({});
 
             const user = await User.findById(req.body.userId);
@@ -177,7 +195,10 @@ const allEarnings = async (req, res) => {
             })
                 .limit(limit)
                 .skip((page - 1) * limit)
-                .sort({ createdAt: 1 });
+                .sort({ createdAt: -1 })
+                .populate('userId', '')
+                .populate('carId', '')
+                .populate('rentId', '');
 
             const count = await Payment.countDocuments({
                 createdAt: { $gte: today }
@@ -219,7 +240,10 @@ const allEarnings = async (req, res) => {
             })
                 .limit(limit)
                 .skip((page - 1) * limit)
-                .sort({ createdAt: 1 });
+                .sort({ createdAt: -1 })
+                .populate('userId', '')
+                .populate('carId', '')
+                .populate('rentId', '');
 
             const count = await Payment.countDocuments({
                 createdAt: { $gte: sevenDaysAgo, $lte: today }
@@ -262,7 +286,10 @@ const allEarnings = async (req, res) => {
             })
                 .limit(limit)
                 .skip((page - 1) * limit)
-                .sort({ createdAt: 1 });
+                .sort({ createdAt: -1 })
+                .populate('userId', '')
+                .populate('carId', '')
+                .populate('rentId', '');
 
             const count = await Payment.countDocuments({
                 createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
@@ -301,7 +328,6 @@ const allEarnings = async (req, res) => {
         res.status(500).json({ error: 'An error occurred while fetching rents.' });
     }
 }
-
 
 
 

@@ -25,6 +25,14 @@ const signUp = async (req, res) => {
         // Generate OTC (One-Time Code)
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
+        const kycFileNames = [];
+
+        if (req.files && req.files.KYC) {
+            req.files.KYC.forEach((file) => {
+                kycFileNames.push(file.originalname);
+            });
+        }
+
         // Create the user in the database
         const user = await User.create({
             fullName,
@@ -34,13 +42,27 @@ const signUp = async (req, res) => {
             address,
             dateOfBirth,
             password,
-            KYC,
+            KYC: kycFileNames,
             RFC,
             creaditCardNumber,
-            image,
+            image: req.files.image[0].originalname,
             oneTimeCode,
             role
         });
+
+
+
+        // if (req.files) {
+        //     let path = ''
+        //     req.files.forEach(function (files, index, arr) {
+        //         path = path + files.path + ','
+        //     });
+
+        //     path = path.substring(0, path.lastIndexOf(","))
+        //     user.KYC = path
+        // }
+
+        // user.save()
 
         // Clear any previous timer for the user (if exists)
         if (userTimers.has(user._id)) {
@@ -114,6 +136,7 @@ const signIn = async (req, res) => {
 
         // Find the user by email
         const user = await User.findOne({ email });
+        console.log("user", user)
 
         if (!user) {
             return res.status(401).json({ message: 'Authentication failed' });
@@ -121,6 +144,7 @@ const signIn = async (req, res) => {
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log("object", isPasswordValid)
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Authentication failed' });
@@ -159,14 +183,14 @@ const allUsers = async (req, res) => {
         const searchRegExp = new RegExp('.*' + search + '.*', 'i');
         const filter = {
             $or: [
-                { fullname: { $regex: searchRegExp } },
+                { fullName: { $regex: searchRegExp } },
                 { email: { $regex: searchRegExp } },
                 { phoneNumber: { $regex: searchRegExp } },
                 { address: { $regex: searchRegExp } },
             ]
         }
 
-        const users = await User.find(filter).limit(limit).skip((page - 1) * limit);
+        const users = await User.find(filter).limit(limit).skip((page - 1) * limit).sort({ createdAt: -1 });
         const count = await User.countDocuments(filter);
 
         if (!admin) {
@@ -259,6 +283,68 @@ const allHosts = async (req, res) => {
     }
 };
 
+const allUserInfo = async (req, res) => {
+    try {
+        const admin = await User.findOne({ _id: req.body.userId });
+        console.log(admin);
+
+        if (!admin) {
+            return res.status(404).json({ message: 'You are not an authorized person' });
+        }
+
+        if (admin.role !== 'admin') {
+            return res.status(404).json({ message: 'You are not an admin' });
+        }
+
+        const allUsersQuery = User.find({ role: "user" });
+
+        const search = req.query.search || '';
+        if (search) {
+            allUsersQuery.where('fullName').regex(new RegExp('.*' + search + '.*', 'i'));
+        }
+
+        const allUsers = await allUsersQuery;
+
+        const carList = await Car.find({}); // Fetch all cars
+
+        const hostCarCounts = {}; // Create an object to store host car counts
+
+        for (const car of carList) {
+            if (hostCarCounts[car.carOwner]) {
+                hostCarCounts[car.carOwner]++;
+            } else {
+                hostCarCounts[car.carOwner] = 1;
+            }
+        }
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedHosts = allUsers.slice(startIndex, endIndex);
+        const userData = paginatedHosts.map(user => ({
+            user,
+        }));
+
+        res.status(200).json({
+            message: "User Data Retrieved Successfully",
+            userData,
+            pagination: {
+                totalUsers: allUsers.length,
+                totalPage: Math.ceil(allUsers.length / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(allUsers.length / limit) ? page + 1 : null,
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "All Hosts Retrieving Failed" });
+    }
+};
+
 // All User With Trip Amount
 const allUsersWithTripAmount = async (req, res) => {
     try {
@@ -274,7 +360,12 @@ const allUsersWithTripAmount = async (req, res) => {
 
         const filter = {
             role: "user",
-            fullName: { $regex: new RegExp('.*' + search + '.*', 'i') }
+            // fullName: { $regex: new RegExp('.*' + search + '.*', 'i') },
+            // email: { $regex: new RegExp('.*' + search + '.*', 'i') }
+            $or: [
+                { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+            ],
         };
 
         const totalCount = await User.countDocuments(filter);
@@ -282,7 +373,7 @@ const allUsersWithTripAmount = async (req, res) => {
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
 
-        const allUsers = await User.find(filter).skip(startIndex).limit(limit);
+        const allUsers = await User.find(filter).skip(startIndex).limit(limit).sort({ createdAt: -1 });
         console.log("object", allUsers);
 
         const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
@@ -311,7 +402,6 @@ const allUsersWithTripAmount = async (req, res) => {
         res.status(500).json({ message: "User Data Retrieving Failed" });
     }
 };
-
 
 
 //Banned users
@@ -397,7 +487,7 @@ const updateUser = async (req, res) => {
             user.phoneNumber = phoneNumber;
             user.gender = gender;
             user.address = address;
-            user.password = password;
+            // user.password = user.password;
             user.dateOfBirth = dateOfBirth;
             user.KYC = KYC;
             user.RFC = RFC;
@@ -442,7 +532,7 @@ const approveHost = async (req, res) => {
 
 // Change Password
 const changePassword = async (req, res) => {
-    const { email, password, newPassword, reTypedPassword } = req.body;
+    const { email, currentPassword, newPassword, reTypedPassword } = req.body;
     try {
         const user = await User.findOne({ email })
 
@@ -450,8 +540,7 @@ const changePassword = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        console.log(passwordMatch)
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
 
         if (!passwordMatch) {
             return res.status(401).json({ message: 'Current password is incorrect' });
@@ -569,4 +658,13 @@ const updatePassword = async (req, res) => {
     }
 };
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount };
+const hostKyc = async (req, res) => {
+    try {
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: 'Error ' })
+    }
+}
+
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo };

@@ -13,19 +13,27 @@ const createCar = async (req, res) => {
         // // Find the user
         const user = await User.findById(req.body.userId);
 
+        const kycFileNames = [];
+
+        if (req.files && req.files.KYC) {
+            req.files.KYC.forEach((file) => {
+                kycFileNames.push(file.originalname);
+            });
+        }
+
         if (!user) {
             res.status(404).json({ message: "User not found" });
         } else if (user.role === 'host') {
             // Create the user in the database
             const car = await Car.create({
                 carModelName,
-                image,
+                image: req.files.image[0].originalname,
                 year,
                 carLicenseNumber,
                 carDescription,
                 insuranceStartDate,
                 insuranceEndDate,
-                carLicenseImage,
+                KYC: kycFileNames,
                 carColor,
                 carDoors,
                 carSeats,
@@ -63,10 +71,11 @@ const allCars = async (req, res) => {
             ]
         }
         const perMittedUser = await User.findById(req.body.userId);
-        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit);
+        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ createdAt: -1 });
         const count = await Car.countDocuments(filter);
 
-        const totalCar = cars.length;
+
+        const totalCar = count;
 
         const reservedCar = await Rent.countDocuments({ payment: "Completed" });
 

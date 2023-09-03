@@ -38,7 +38,29 @@ const createRentRequest = async (req, res) => {
             res.status(401).json({ message: "Invalid role" });
         }
 
+        function generateUniqueFourDigitNumber() {
+            const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+            // Shuffle the digits randomly
+            for (let i = digits.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [digits[i], digits[j]] = [digits[j], digits[i]];
+            }
+
+            // Take the first 4 digits and join them
+            const uniqueNumber = digits.slice(0, 4).join('');
+
+            return uniqueNumber;
+        }
+
+        // Generate a unique 4-digit number
+        const randomFourDigitNumber = generateUniqueFourDigitNumber();
+
+        // Combine the random number with the "RENT-" prefix
+        const rentTripNumber = `RENT-${randomFourDigitNumber}`;
+
         const rents = await Rent.create({
+            rentTripNumber,
             totalAmount,
             startDate,
             endDate,
@@ -96,10 +118,43 @@ const allRentRequest = async (req, res) => {
             ],
         };
 
-        const rents = await Rent.find(filter).limit(limit).skip((page - 1) * limit);
+        const rents = await Rent.find(filter)
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .populate('carId', '')
+            .populate('userId', '')
+            .sort({ createdAt: -1 });
         const count = await Rent.countDocuments(filter);
 
         const user = await User.findById(req.body.userId);
+
+        // Today Rent
+        const today = new Date();
+        const todayRents = rents.filter(rents => {
+            // Assuming the rent object has a date field like 'rentDate'
+            const rentDate = new Date(rents.createdAt);
+            // Check if the rent date matches the current date
+            return (
+                rentDate.getDate() === today.getDate() &&
+                rentDate.getMonth() === today.getMonth() &&
+                rentDate.getFullYear() === today.getFullYear()
+            );
+        });
+
+        const rentsByHour = {};
+
+        todayRents.forEach(rent => {
+            const rentDate = new Date(rent.createdAt);
+            const hour = rentDate.getHours();
+            if (!rentsByHour[hour]) {
+                rentsByHour[hour] = 1;
+            } else {
+                rentsByHour[hour]++;
+            }
+        });
+
+        console.log(rentsByHour)
+
 
         // Renti Information
         const rentRejected = await Rent.find({ requestStatus: "Rejected" })
@@ -149,9 +204,11 @@ const allRentRequest = async (req, res) => {
 
         if (user.role === 'admin') {
             return res.status(200).json({
+                rentsByHour,
                 rentCompletedTotalAmount,
                 rentReservedTotalAmount,
                 totalRejectedAmount,
+                // todayRents,
                 rents,
                 pagination: {
                     totalDocuments: count,
@@ -164,7 +221,7 @@ const allRentRequest = async (req, res) => {
         }
 
         if (user.role === 'user') {
-            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit);
+            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit).sort({ createdAt: -1 });
             const userCount = await Rent.countDocuments({ userId: user._id, ...filter });
             return res.status(200).json({
                 userWiseRent,
