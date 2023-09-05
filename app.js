@@ -10,6 +10,7 @@ const incomeRouter = require('./routes/incomeRouter');
 const aboutRouter = require('./routes/aboutRouter');
 const privacyPolicy = require('./routes/privacyPolicy');
 const termsConditionRouter = require('./routes/termsConditionRouter');
+const percentageRouter = require('./routes/percentageRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/income', incomeRouter);
 app.use('/api/about', aboutRouter);
 app.use('/api/privacyPolicy', privacyPolicy);
 app.use('/api/termsConditionRouter', termsConditionRouter);
+app.use('/api/percentage', percentageRouter);
 
 app.use(express.static('public'));
 app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))

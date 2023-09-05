@@ -4,6 +4,7 @@ const Payment = require("../models/Payment");
 const Income = require("../models/Income");
 const User = require("../models/User");
 const Rent = require("../models/Rent");
+const Percentage = require("../models/Percentage");
 
 const hostPayment = async (req, res) => {
     try {
@@ -31,7 +32,11 @@ const hostPayment = async (req, res) => {
         const totalPayoutAmounts = payoutAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
         const totalPaymentAmounts = paymentAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
 
-        const rentiTotal = (totalPayoutAmounts / 100) * 25;
+        const percentages = await Percentage.find({})
+        const contentNumbers = percentages.map(item => item.content);
+        const numberPercentages = Number(contentNumbers)
+
+        const rentiTotal = (totalPayoutAmounts / 100) * numberPercentages;
         const hostPayment = totalPayoutAmounts - rentiTotal;
 
         let hostTotalPercentage = (hostPayment / totalPaymentAmounts) * 100;
@@ -186,6 +191,9 @@ const userPaymentList = async (req, res) => {
 const rentiPaymentList = async (req, res) => {
     try {
 
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
         const carInfo = await Car.find({});
 
         const paymentList = await Payment.find({})
@@ -203,19 +211,67 @@ const rentiPaymentList = async (req, res) => {
             return res.status(401).json({ message: 'You are not Authorized' });
         }
 
-        // const paymentAmounts = await Payment.find({ payout: false }).select('paymentData.amount');  //Total Pending
         const payoutAmounts = await Payment.find({ payout: true }).select('paymentData.amount');   //Total Payment
 
         const totalPayoutAmounts = payoutAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
-        // const totalPaymentAmounts = paymentAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
 
-        const rentiTotalPayment = (totalPayoutAmounts / 100) * 25;
-        const hostPayment = totalPayoutAmounts - rentiTotalPayment;
+        const percentages = await Percentage.find({})
+        const contentNumbers = percentages.map(item => item.content);
+        const numberPercentages = Number(contentNumbers)
+
+
+        const rentiTotalIncome = (totalPayoutAmounts / 100) * numberPercentages;
+        const hostPayment = totalPayoutAmounts - rentiTotalIncome;
+
+
+        const userPaymentList = [];
+
+        for (const payment of paymentList) {
+            const rentId = payment.rentId; // Assuming rentId is a field in Payment
+            console.log(rentId)
+            const rent = await Rent.findOne({ _id: rentId });
+            console.log(rent)
+
+            if (rent) {
+                const userId = rent.userId;
+                const user = await User.findOne({ _id: userId });
+                // Assuming your User collection has _id field and Car has carOwner field
+                if (user) {
+                    userPaymentList.push({
+                        status: payment.payout,
+                        carOwner: user.fullName,
+                        totalAmount: payment.paymentData.amount,
+                        hostPayment: payment.paymentData.amount - (payment.paymentData.amount / 100 * numberPercentages),
+                        stripeFee: 0,
+                        rentiIncome: payment.paymentData.amount / 100 * numberPercentages,
+                        time: payment.createdAt,
+                        method: payment.paymentData.source.brand,
+                        rentTripNumbers: rent.rentTripNumber // Assuming tripNumber is a field in Rent
+                    });
+                }
+            }
+        }
+
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const totalDocuments = userPaymentList.length;
+        const slicedUserPaymentList = userPaymentList.slice(startIndex, endIndex);
+
 
         res.status(200).json({
             message: "Payment Retrieve Successfully",
-            hostTotalPayment: hostPayment,
-            rentiTotalPayment
+            totalPaid: hostPayment,
+            rentiTotalIncome,
+            userPaymentList,
+            userPaymentList: slicedUserPaymentList,
+            pagination: {
+                totalDocuments,
+                totalPage: Math.ceil(totalDocuments / limit),
+                currentPage: page,
+                previousPage: page > 1 ? page - 1 : null,
+                nextPage: page < Math.ceil(totalDocuments / limit) ? page + 1 : null
+            }
         })
 
 

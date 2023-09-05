@@ -129,11 +129,36 @@ const allRentRequest = async (req, res) => {
         const user = await User.findById(req.body.userId);
 
         // Today Rent
+        // const today = new Date();
+        // const todayRents = rents.filter(rents => {
+        //     // Assuming the rent object has a date field like 'rentDate'
+        //     const rentDate = new Date(rents.createdAt);
+        //     // Check if the rent date matches the current date
+        //     return (
+        //         rentDate.getDate() === today.getDate() &&
+        //         rentDate.getMonth() === today.getMonth() &&
+        //         rentDate.getFullYear() === today.getFullYear()
+        //     );
+        // });
+
+        // const rentsByHour = {};
+
+        // todayRents.forEach(rent => {
+        //     const rentDate = new Date(rent.createdAt);
+        //     const hour = rentDate.getHours();
+        //     if (!rentsByHour[hour]) {
+        //         rentsByHour[hour] = 1;
+        //     } else {
+        //         rentsByHour[hour]++;
+        //     }
+        // });
+
+        // console.log("rentsByHour",rentsByHour)
+
+
         const today = new Date();
-        const todayRents = rents.filter(rents => {
-            // Assuming the rent object has a date field like 'rentDate'
-            const rentDate = new Date(rents.createdAt);
-            // Check if the rent date matches the current date
+        const todayRents = rents.filter(rent => {
+            const rentDate = new Date(rent.createdAt);
             return (
                 rentDate.getDate() === today.getDate() &&
                 rentDate.getMonth() === today.getMonth() &&
@@ -141,20 +166,15 @@ const allRentRequest = async (req, res) => {
             );
         });
 
-        const rentsByHour = {};
+        const rentsByHour = Array(24).fill(0); // Initialize an array to count rents for each hour
 
         todayRents.forEach(rent => {
             const rentDate = new Date(rent.createdAt);
             const hour = rentDate.getHours();
-            if (!rentsByHour[hour]) {
-                rentsByHour[hour] = 1;
-            } else {
-                rentsByHour[hour]++;
-            }
+            rentsByHour[hour]++; // Increment the count for the corresponding hour
         });
 
-        console.log(rentsByHour)
-
+        console.log("rentsByHour", rentsByHour);
 
         // Renti Information
         const rentRejected = await Rent.find({ requestStatus: "Rejected" })
