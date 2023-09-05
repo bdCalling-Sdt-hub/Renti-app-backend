@@ -13,11 +13,14 @@ const createCar = async (req, res) => {
         // // Find the user
         const user = await User.findById(req.body.userId);
 
+        console.log(req.files.KYC)
+
         const kycFileNames = [];
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
-                kycFileNames.push(file.originalname);
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                kycFileNames.push(publicFileUrl);
             });
         }
 
@@ -25,9 +28,12 @@ const createCar = async (req, res) => {
             res.status(404).json({ message: "User not found" });
         } else if (user.role === 'host') {
             // Create the user in the database
+
+            const publicImageUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+
             const car = await Car.create({
                 carModelName,
-                image: req.files.image[0].originalname,
+                image: publicImageUrl,
                 year,
                 carLicenseNumber,
                 carDescription,

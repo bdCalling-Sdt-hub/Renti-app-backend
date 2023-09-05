@@ -3,6 +3,7 @@ const Car = require("../models/Car");
 const Payment = require("../models/Payment");
 const Income = require("../models/Income");
 const User = require("../models/User");
+const Rent = require("../models/Rent");
 
 const hostPayment = async (req, res) => {
     try {
@@ -33,9 +34,15 @@ const hostPayment = async (req, res) => {
         const rentiTotal = (totalPayoutAmounts / 100) * 25;
         const hostPayment = totalPayoutAmounts - rentiTotal;
 
+        let hostTotalPercentage = (hostPayment / totalPaymentAmounts) * 100;
+
+        let hostPendingPercentage = (hostPayment / totalPayoutAmounts) * 100;
+
         const income = await Income.create({
             hostTotalPending: totalPaymentAmounts,
             hostTotalPayment: hostPayment,
+            hostTotalPercentage,
+            hostPendingPercentage
         })
 
         res.status(200).json({
@@ -106,9 +113,20 @@ const hostPaymentList = async (req, res) => {
     }
 };
 
+
 const userPaymentList = async (req, res) => {
     try {
-        const payments = await Payment.find({}); // Fetch all payments
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const payments = await Payment.find({}) // Fetch all payments
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: -1 })
+
+        const count = await Payment.countDocuments();
+
         if (!payments || payments.length === 0) {
             return res.status(404).json({ message: 'Payment not found' });
         }
@@ -124,26 +142,38 @@ const userPaymentList = async (req, res) => {
 
         const userPaymentList = [];
 
-        // Fetch carOwner information for each payment
         for (const payment of payments) {
-            const userId = payment.userId;
-            const user = await User.findOne({ _id: userId }); // Assuming your Car collection has _id field
-            if (user) {
-                const user = await User.findOne({ role: 'user' });
+            const rentId = payment.rentId; // Assuming rentId is a field in Payment
+            const rent = await Rent.findOne({ _id: rentId });
+
+            if (rent) {
+                const userId = rent.userId;
+                const user = await User.findOne({ _id: userId });
                 // Assuming your User collection has _id field and Car has carOwner field
                 if (user) {
                     userPaymentList.push({
                         status: payment.payout,
                         carOwner: user.fullName,
                         amount: payment.paymentData.amount,
+                        time: payment.createdAt,
+                        method: payment.paymentData.source.brand,
+                        rentTripNumbers: rent.rentTripNumber // Assuming tripNumber is a field in Rent
                     });
                 }
             }
         }
 
+
         res.status(200).json({
             message: "Payment Retrieved Successfully",
-            userPaymentList
+            userPaymentList,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+            }
         })
 
     } catch (error) {

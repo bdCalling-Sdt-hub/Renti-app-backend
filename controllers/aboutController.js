@@ -1,9 +1,21 @@
 const About = require("../models/About");
+const User = require("../models/User");
 
-const createOrUpdateAboutUs = async (req, res) => {
+const createOrUpdate = async (req, res) => {
     const { content } = req.body;
 
     try {
+
+        const user = await User.findById(req.body.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role !== 'admin') {
+            return res.status(404).json({ message: 'You are not Authorization' });
+        }
+
         // Check if an About Us entry already exists
         let about = await About.findOne();
 
@@ -25,8 +37,18 @@ const createOrUpdateAboutUs = async (req, res) => {
     }
 };
 
-const getAboutUs = async (req, res) => {
+const getAll = async (req, res) => {
     try {
+        const user = await User.findById(req.body.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role !== 'admin') {
+            return res.status(404).json({ message: 'You are not Authorization' });
+        }
+
         // Find the About Us entry (assuming there's only one)
         const about = await About.findOne();
 
@@ -34,11 +56,15 @@ const getAboutUs = async (req, res) => {
             return res.status(404).json({ message: 'About Us content not found' });
         }
 
-        return res.status(200).json({ message: 'About Us content retrieved successfully', about });
+        // Remove HTML tags from the "about" content
+        const aboutContentWithoutTags = about.content.replace(/<\/?[^>]+(>|$)/g, "");
+
+        return res.status(200).json({ message: 'About Us content retrieved successfully', about: { ...about.toObject(), content: aboutContentWithoutTags } });
+        // return res.status(200).json({ message: 'About Us content retrieved successfully', about });
     } catch (error) {
         console.error(error.message);
         return res.status(500).json({ message: 'Server error' });
     }
 };
 
-module.exports = { createOrUpdateAboutUs, getAboutUs };
+module.exports = { createOrUpdate, getAll };

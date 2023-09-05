@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema({
   emailVerified: { type: Boolean, default: false },
   approved: { type: Boolean, default: false },
   isBanned: { type: Boolean, default: false },
+  // isBlock: { type: Boolean, default: false },
   oneTimeCode: { type: String, required: false },
 }, { timestamps: true }, {
   toJSON: {

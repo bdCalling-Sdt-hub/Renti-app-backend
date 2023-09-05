@@ -113,7 +113,7 @@ const allRentRequest = async (req, res) => {
         const searchRegExp = new RegExp('.*' + search, 'i');
         const filter = {
             $or: [
-                { requestStatus: { $regex: searchRegExp } },
+                { rentTripNumber: { $regex: searchRegExp } },
                 { totalAmount: { $regex: searchRegExp } },
             ],
         };

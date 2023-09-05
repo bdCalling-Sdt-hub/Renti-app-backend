@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { createOrUpdateAboutUs, getAboutUs } = require("../controllers/aboutController");
+const { createOrUpdate, getAll } = require("../controllers/aboutController");
+const { isValidUser } = require('../middleWares/auth');
 
 
-router.post('/create', createOrUpdateAboutUs);
-router.get('/about-us', getAboutUs);
+router.post('/create', isValidUser, createOrUpdate);
+router.get('/all', isValidUser, getAll);
 
 module.exports = router;

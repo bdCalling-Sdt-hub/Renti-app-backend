@@ -6,15 +6,16 @@ const signUpService = require("../services/userService");
 const { createJSONWebToken } = require("../helpers/jsonWebToken");
 const Car = require("../models/Car");
 const Payment = require("../models/Payment");
+const Activity = require("../models/Activity");
 
 
 // Define a map to store user timers for sign up requests
 const userTimers = new Map();
 
+
 const signUp = async (req, res) => {
     try {
         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image, role } = req.body;
-
 
         // Check if the user already exists
         const userExist = await User.findOne({ email });
@@ -29,8 +30,18 @@ const signUp = async (req, res) => {
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
-                kycFileNames.push(file.originalname);
+                // Add public/uploads link to each KYC file
+                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                kycFileNames.push(kycLink);
             });
+        }
+
+        let imageFileName = '';
+
+        // Check if req.files.image exists and is an array
+        if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
+            // Add public/uploads link to the image file
+            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
         }
 
         // Create the user in the database
@@ -42,27 +53,13 @@ const signUp = async (req, res) => {
             address,
             dateOfBirth,
             password,
+            image: imageFileName,
             KYC: kycFileNames,
             RFC,
             creaditCardNumber,
-            image: req.files.image[0].originalname,
             oneTimeCode,
             role
         });
-
-
-
-        // if (req.files) {
-        //     let path = ''
-        //     req.files.forEach(function (files, index, arr) {
-        //         path = path + files.path + ','
-        //     });
-
-        //     path = path.substring(0, path.lastIndexOf(","))
-        //     user.KYC = path
-        // }
-
-        // user.save()
 
         // Clear any previous timer for the user (if exists)
         if (userTimers.has(user._id)) {
@@ -108,6 +105,8 @@ const signUp = async (req, res) => {
     }
 };
 
+
+
 //Verify email
 const verifyEmail = async (req, res) => {
     try {
@@ -129,6 +128,45 @@ const verifyEmail = async (req, res) => {
 };
 
 //Sign in user
+// const signIn = async (req, res) => {
+//     try {
+//         //Get email password from req.body
+//         const { email, password } = req.body;
+
+//         // Find the user by email
+//         const user = await User.findOne({ email });
+//         console.log("user", user)
+
+//         if (!user) {
+//             return res.status(401).json({ message: 'Authentication failed' });
+//         }
+
+//         // Compare the provided password with the stored hashed password
+//         const isPasswordValid = await bcrypt.compare(password, user.password);
+//         console.log("object", isPasswordValid)
+
+//         if (!isPasswordValid) {
+//             return res.status(401).json({ message: 'Authentication failed' });
+//         }
+
+//         //Checking banned user
+//         if (user.isBanned) {
+//             return res.status(403).json({ message: 'User is banned! Please Contract authority' });
+//         }
+
+//         //Token, set the Cokkie
+//         //   const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+//         const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
+//         // res.cookie('accessToken', accessToken, { maxAge: 60 * 60 * 1000, });
+//         // console.log('Controller Cookie:', req.cookies.accessToken);
+
+//         //Success response
+//         res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Error signing in', error });
+//     }
+// };
 const signIn = async (req, res) => {
     try {
         //Get email password from req.body
@@ -136,7 +174,6 @@ const signIn = async (req, res) => {
 
         // Find the user by email
         const user = await User.findOne({ email });
-        console.log("user", user)
 
         if (!user) {
             return res.status(401).json({ message: 'Authentication failed' });
@@ -144,7 +181,6 @@ const signIn = async (req, res) => {
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log("object", isPasswordValid)
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Authentication failed' });
@@ -155,19 +191,72 @@ const signIn = async (req, res) => {
             return res.status(403).json({ message: 'User is banned! Please Contract authority' });
         }
 
+
+        function getBrowserInfo(userAgent) {
+            const ua = userAgent.toLowerCase();
+
+            if (ua.includes('firefox')) {
+                return 'Firefox';
+            } else if (ua.includes('edg')) {
+                return 'Edge';
+            } else if (ua.includes('safari') && !ua.includes('chrome')) {
+                return 'Safari';
+            } else if (ua.includes('opr') || ua.includes('opera')) {
+                return 'Opera';
+            } else if (ua.includes('chrome')) {
+                return 'Chrome';
+            } else {
+                return 'Unknown'; // Default to 'Unknown' if the browser is not recognized
+            }
+        }
+
+
+        //Get OS and device name or model from request headers
+        const os = req.headers['user-agent'];
+        const deviceNameOrModel = req.headers['user-agent'];
+        const userAgent = req.get('user-agent');
+        const browser = getBrowserInfo(userAgent);
+
         //Token, set the Cokkie
         //   const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
         const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
-        // res.cookie('accessToken', accessToken, { maxAge: 60 * 60 * 1000, });
+        // res.cookie('accessToken', accessToken, { maxAge: 60  60  1000, });
         // console.log('Controller Cookie:', req.cookies.accessToken);
+
+        const activity = await Activity.create({
+            operatingSystem: os,
+            browser,
+            deviceModel: deviceNameOrModel,
+            userId: user._id
+        });
+
+        console.log("hit", req.headers)
 
         //Success response
         res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
+
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error signing in', error });
     }
 };
+
+
+const userActivity = async (req, res) => {
+    try {
+        const activity = await Activity.find({});
+        const user = User.findById(req.body.userId);
+        if (user.role !== 'admin') {
+            res.status(200).json({ message: 'Activity of all users', activity });
+        } else {
+            res.status(401).json({ message: 'You are not authorized' });
+        }
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error retriving activity' })
+    }
+}
 
 
 //All users
@@ -237,7 +326,11 @@ const allHosts = async (req, res) => {
 
         const search = req.query.search || '';
         if (search) {
-            allHostsQuery.where('fullName').regex(new RegExp('.*' + search + '.*', 'i'));
+            allHostsQuery.or([
+                { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                { phoneNumber: { $regex: new RegExp('.*' + search + '.*', 'i') } }
+            ]);
         }
 
         const allHosts = await allHostsQuery;
@@ -504,6 +597,64 @@ const updateUser = async (req, res) => {
     }
 };
 
+const allBlockedUsers = async (req, res) => {
+    try {
+        const blockedUsers = await User.find({ isBlock: true });
+
+        res.status(200).json({ message: 'Blocked User Retrieve Successfully', blockedUsers });
+    } catch (error) {
+        res.status(500).json({ message: 'Error while fetching blocked users', error });
+    }
+}
+
+const blockedUsers = async (req, res) => {
+    try {
+        // Step 1: Fetch the admin and user information
+        const { isBlocked } = req.body;
+        const adminId = req.body.userId;
+        const admin = await User.findOne({ _id: adminId });
+        const userId = req.params.id;
+        const user = await User.findById(userId);
+
+        // Step 2: Check if admin and user exist
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Step 3: Check if user is already banned
+        // if (user.isBanned === true) {
+        //     return res.status(403).json({ message: 'User is already banned' });
+        // }
+
+        // Step 4: Check if the requester is an admin
+        if (admin.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized' });
+        }
+
+        if (isBlocked === "approve") {
+            user.isBlock = "false";
+            await user.save();
+        } else if (isBlocked === "cancel") {
+            user.isBlock = 'true';
+            await user.save();
+        }
+
+        // Step 5: Ban the user
+
+
+
+
+        // Step 6: Respond with success message
+        res.status(200).json({ message: `User ${isApprove} Successfully` });
+    } catch (error) {
+        // Step 7: Handle errors
+        res.status(500).json({ message: 'Error while banning user', error });
+    }
+};
+
 //Approve host
 const approveHost = async (req, res) => {
     try {
@@ -667,4 +818,4 @@ const hostKyc = async (req, res) => {
     }
 }
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo };
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity };

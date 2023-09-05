@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -17,6 +17,8 @@ router.post('/verify', verifyEmail);
 //Sign in
 router.post('/sign-in', signIn);
 
+router.get('/activity', isValidUser, userActivity);
+
 //All users
 router.get('/all', isValidUser, allUsers);
 
@@ -31,6 +33,10 @@ router.post('/banned/:id', isValidUser, bannedUsers);
 
 //All Banned users
 router.get('/banned/all', allBannedUsers);
+
+router.get('/blocked/all', allBlockedUsers);
+
+router.post('/blocked/:id', isValidUser, blockedUsers);
 
 //Update user
 router.post('/update/:id', isValidUser, updateUser);

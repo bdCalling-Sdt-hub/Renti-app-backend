@@ -7,9 +7,9 @@ const router = express.Router();
 
 // Sign-up
 router.get('/host-payment', isValidUser, hostPayment);
-router.get('/host-payment-list', hostPaymentList);
-router.get('/user-payment-list', userPaymentList);
-router.get('/renti-payment-list', rentiPaymentList);
+router.get('/host-payment-list', isValidUser, hostPaymentList);
+router.get('/user-payment-list', isValidUser, userPaymentList);
+router.get('/renti-payment-list', isValidUser, rentiPaymentList);
 
 
 

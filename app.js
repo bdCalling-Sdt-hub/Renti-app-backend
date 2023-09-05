@@ -8,6 +8,8 @@ const paymentRouter = require('./routes/paymentRouter');
 const dashBoardRouter = require('./routes/dashboardRouter');
 const incomeRouter = require('./routes/incomeRouter');
 const aboutRouter = require('./routes/aboutRouter');
+const privacyPolicy = require('./routes/privacyPolicy');
+const termsConditionRouter = require('./routes/termsConditionRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -36,8 +38,14 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/dashboard', dashBoardRouter);
 app.use('/api/income', incomeRouter);
 app.use('/api/about', aboutRouter);
+app.use('/api/privacyPolicy', privacyPolicy);
+app.use('/api/termsConditionRouter', termsConditionRouter);
 
-app.use('/upload', express.static(__dirname + '/public/uploads/kyc'))
+app.use(express.static('public'));
+app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))
+app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/image/'));
+
+
 
 // function callEveryFiveSeconds(callback) {
 //   setInterval(callback, 5000);
