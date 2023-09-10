@@ -11,6 +11,9 @@ const aboutRouter = require('./routes/aboutRouter');
 const privacyPolicy = require('./routes/privacyPolicy');
 const termsConditionRouter = require('./routes/termsConditionRouter');
 const percentageRouter = require('./routes/percentageRouter');
+const hostPaymentTime = require('./routes/hostPaymentTime');
+const reviewRouter = require('./routes/reviewRouter');
+const cardRouter = require('./routes/cardRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -42,6 +45,9 @@ app.use('/api/about', aboutRouter);
 app.use('/api/privacyPolicy', privacyPolicy);
 app.use('/api/termsConditionRouter', termsConditionRouter);
 app.use('/api/percentage', percentageRouter);
+app.use('/api/host-payment-time', hostPaymentTime);
+app.use('/api/review', reviewRouter);
+app.use('/api/card', cardRouter);
 
 app.use(express.static('public'));
 app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))

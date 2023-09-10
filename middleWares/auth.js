@@ -19,8 +19,8 @@ const isValidUser = async (req, res, next) => {
         req.body.userId = decodedData._id;
         next();
     } catch (error) {
-        console.log("hhh", error.message)
-        return res.status(500).json({ message: "User invalid" });
+        console.log("Middleware Error", error.message)
+        return res.status(500).json({ message: "Invalid User" });
 
     }
 };

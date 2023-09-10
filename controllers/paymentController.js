@@ -48,6 +48,7 @@ const payment = async (req, res) => {
             userId: user._id,
             carId: rentRequest.carId,
             rentId: rentRequest,
+            hostId: rentRequest.hostId,
         });
 
         // Update the Car model with the paymentId

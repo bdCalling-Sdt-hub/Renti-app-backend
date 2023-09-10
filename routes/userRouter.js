@@ -1,10 +1,11 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
 const configureFileUpload = require('../middleWares/fileUploads');
+const { deleteById } = require('../controllers/carController');
 
 const upload = configureFileUpload();
 
@@ -23,6 +24,10 @@ router.get('/activity', isValidUser, userActivity);
 router.get('/all', isValidUser, allUsers);
 
 router.get('/all-host', isValidUser, allHosts);
+
+router.get('/host-user-list', isValidUser, hostUserList);
+
+router.get('/host-user/:id', isValidUser, getHostUserById);
 
 router.get('/all-user-info', isValidUser, allUserInfo);
 
@@ -57,5 +62,7 @@ router.post('/verify-code', verifyOneTimeCode);
 router.post('/update-password', updatePassword);
 
 router.get('/host-kyc', hostKyc)
+
+router.delete('/delete-user/:id', isValidUser, deleteById)
 
 module.exports = router;

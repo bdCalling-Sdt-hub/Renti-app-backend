@@ -62,6 +62,7 @@ const createRentRequest = async (req, res) => {
         const rents = await Rent.create({
             rentTripNumber,
             totalAmount,
+            totalHours,
             startDate,
             endDate,
             userId: user._id,
@@ -123,6 +124,7 @@ const allRentRequest = async (req, res) => {
             .skip((page - 1) * limit)
             .populate('carId', '')
             .populate('userId', '')
+            .populate('hostId', '')
             .sort({ createdAt: -1 });
         const count = await Rent.countDocuments(filter);
 
@@ -390,68 +392,25 @@ const deleteRentById = async (req, res) => {
     }
 };
 
-// const startTrip = async (req, res) => {
-//     try {
-//         const { startDate, endDate, tripStatus } = req.body;
-//         console.log(startDate, endDate);
-
-//         const { carId } = req.params;
-
-//         const user = await User.findById(req.body.userId);
-//         const car = await Car.findById(req.params.carId);
-
-//         const hourlyRate = car.hourlyRate;
-
-//         const fromDate = new Date(startDate);
-//         const toDate = new Date(endDate);
-
-//         const timeDiff = toDate - fromDate;
-
-//         const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
-//         const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-
-
-//         const totalAmount = Number(hourlyRate) * totalHours
-
-//         if (!user) {
-//             res.status(404).json({ message: 'You do not have permission to' });
-//         }
-
-//         if (user.role !== "user") {
-//             res.status(401).json({ message: "Invalid role" });
-//         }
-
-//         const rentRequest = await Rent.findOne({ userId: user._id });
-//         console.log("rentRequest", rentRequest);
-
-//         if (!rentRequest) {
-//             return res.status(404).json({ message: 'Request is not found for Start Trip' });
-//         }
-
-//         if (req.body.userId !== rentRequest.userId.toString() && rentRequest.requestStatus !== "Accepted") {
-//             return res.status(401).json({ message: 'You cannot start trip on this car' });
-//         }
-
-//         if (rentRequest.payment !== "Completed") {
-//             return res.status(401).json({ message: 'Your payment is not Completed' });
-//         }
-
-//         car.tripStatus = tripStatus;
-
-//         await car.save()
-
-//         res.status(200).json({ message: `Trip ${tripStatus}`, car });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: "Error creating car", error: error })
-//     }
-// };
-
 const startTrip = async (req, res) => {
     const requestId = req.params.requestId;
     try {
 
-        const { tripStatus } = req.body;
+        const { tripStatus, carImage } = req.body;
+        console.log(tripStatus)
+
+        console.log(req.files.carImage)
+
+        const kycFileNames = [];
+
+        if (req.files && req.files.carImage) {
+            req.files.carImage.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                kycFileNames.push(publicFileUrl);
+            });
+        }
+
+        console.log(kycFileNames)
 
         const user = await User.findById(req.body.userId);
         const rent = await Rent.findOne({ _id: requestId });
@@ -479,7 +438,15 @@ const startTrip = async (req, res) => {
         }
 
         car.tripStatus = tripStatus;
+        car.carImage = kycFileNames;
+        car.userId = user._id;
         await car.save();
+
+        if (tripStatus === "End") {
+            rent.requestStatus = 'Completed';
+            await rent.save()
+        }
+
 
         res.status(200).json({ message: `Trip ${tripStatus} successfully` });
     } catch (error) {
@@ -488,7 +455,66 @@ const startTrip = async (req, res) => {
     }
 };
 
+const hostRentList = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.body.userId);
+        console.log(user)
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role !== 'host') {
+            return res.status(403).json({ message: 'You are not authorized' });
+        }
+
+        // Find cars owned by the host user
+        const ownedCars = await Car.find({ carOwner: user._id });
+
+        // Find cars rented by the host user
+        const rentedCars = await Rent.find({ hostId: user._id });
+        // console.log(rentedCars)
+
+        return res.status(200).json({
+            message: 'Host user car and rented car lists retrieved successfully',
+            // ownedCars,
+            rentedCars,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+    }
+};
+
+const gethostRentById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const host = await Rent.findById(id);
+        console.log(host)
+        if (!host) {
+            res.status(404).json({ message: 'User not found', error });
+        }
+        console.log("ggg", host);
+        console.log(req.body.userId);
+
+        const rent = await Rent.findOne({ _id: host._id }).populate('userId').populate('carId');
+        console.log("gfyhusedgiyh", rent.userId)
+
+        if (!rent) {
+            res.status(404).json({ message: 'User Not Found' })
+        }
+        res.status(200).json({
+            message: "User retrieved successfully",
+            userDetails: rent
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+    }
+};
 
 
 
-module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById, startTrip };
+
+module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById, startTrip, hostRentList, gethostRentById };

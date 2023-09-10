@@ -7,6 +7,7 @@ const { createJSONWebToken } = require("../helpers/jsonWebToken");
 const Car = require("../models/Car");
 const Payment = require("../models/Payment");
 const Activity = require("../models/Activity");
+const Rent = require("../models/Rent");
 
 
 // Define a map to store user timers for sign up requests
@@ -15,7 +16,7 @@ const userTimers = new Map();
 
 const signUp = async (req, res) => {
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image, role } = req.body;
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
 
         // Check if the user already exists
         const userExist = await User.findOne({ email });
@@ -57,6 +58,7 @@ const signUp = async (req, res) => {
             KYC: kycFileNames,
             RFC,
             creaditCardNumber,
+            ine,
             oneTimeCode,
             role
         });
@@ -187,7 +189,7 @@ const signIn = async (req, res) => {
         }
 
         //Checking banned user
-        if (user.isBanned) {
+        if (user.isBanned === "true") {
             return res.status(403).json({ message: 'User is banned! Please Contract authority' });
         }
 
@@ -229,8 +231,6 @@ const signIn = async (req, res) => {
             deviceModel: deviceNameOrModel,
             userId: user._id
         });
-
-        console.log("hit", req.headers)
 
         //Success response
         res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
@@ -376,6 +376,67 @@ const allHosts = async (req, res) => {
     }
 };
 
+// Host User List
+const hostUserList = async (req, res) => {
+    try {
+        const user = await User.findById(req.body.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.role !== 'host') {
+            return res.status(403).json({ message: 'You are not authorized' });
+        }
+
+        // Find cars owned by the host user
+        const ownedCars = await Car.find({ carOwner: user._id });
+
+        // Find cars rented by the host user
+        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId');
+
+        return res.status(200).json({
+            message: 'Host user car and rented car lists retrieved successfully',
+            // ownedCars,
+            userList: rentedCars,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+    }
+};
+
+// Single Host User
+const getHostUserById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const host = await Rent.findById(id);
+        if (!host) {
+            res.status(404).json({ message: 'User not found', error });
+        }
+        console.log("ggg", host);
+        console.log(req.body.userId);
+
+        const rent = await Rent.findOne({ _id: host._id }).populate('userId');
+        console.log("gfyhusedgiyh", rent.userId)
+
+        if (!rent) {
+            res.status(404).json({ message: 'User Not Found' })
+        }
+        res.status(200).json({
+            message: "User retrieved successfully",
+            userDetails: rent.userId
+        })
+    }
+    catch (err) {
+        // console.log(err);
+        res.status(500).json({
+            message: err.message
+        })
+    }
+};
+
+
 const allUserInfo = async (req, res) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
@@ -496,7 +557,6 @@ const allUsersWithTripAmount = async (req, res) => {
     }
 };
 
-
 //Banned users
 const bannedUsers = async (req, res) => {
     try {
@@ -532,6 +592,10 @@ const bannedUsers = async (req, res) => {
             user.isBanned = 'true';
             await user.save();
         }
+        else if (isApprove === "trash") {
+            user.isBanned = 'trash';
+            await user.save();
+        }
 
         // Step 5: Ban the user
 
@@ -549,7 +613,7 @@ const bannedUsers = async (req, res) => {
 // All Banned Users
 const allBannedUsers = async (req, res) => {
     try {
-        const bannedUsers = await User.find({ isBanned: true });
+        const bannedUsers = await User.find({ isBanned: "true" });
 
         res.status(200).json({ message: 'Banned User Retrieve Successfully', bannedUsers });
     } catch (error) {
@@ -818,4 +882,28 @@ const hostKyc = async (req, res) => {
     }
 }
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity };
+const deleteById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findById(req.body.userId);
+        const rent = await Rent.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!rent) {
+            return res.status(404).json({ message: 'Rent not found' });
+        } else if (user._id.equals(rent.userId)) {
+            await rent.deleteOne();
+            res.status(200).json({ message: 'Rent deleted successfully' });
+        } else {
+            res.status(403).json({ message: 'You are not authorized to delete this Rent' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error deleting Rent' });
+    }
+};
+
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById };
