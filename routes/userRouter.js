@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -25,9 +25,13 @@ router.get('/all', isValidUser, allUsers);
 
 router.get('/all-host', isValidUser, allHosts);
 
+// router.get('/all-approve-host', isValidUser, allApprovedHosts);
+
 router.get('/host-user-list', isValidUser, hostUserList);
 
 router.get('/host-user/:id', isValidUser, getHostUserById);
+
+router.get('/user-info', isValidUser, getUserById)
 
 router.get('/all-user-info', isValidUser, allUserInfo);
 

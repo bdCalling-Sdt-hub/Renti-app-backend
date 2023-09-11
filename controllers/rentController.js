@@ -272,7 +272,7 @@ const getRentById = async (req, res) => {
         const id = req.params.id;
         console.log(id);
 
-        const rents = await Rent.findById(id);
+        const rents = await Rent.findById(id).populate("carId").populate("hostId");
 
         if (!rents) {
             res.status(404).json({ message: 'Rent Request is not found' });
@@ -443,7 +443,7 @@ const startTrip = async (req, res) => {
         await car.save();
 
         if (tripStatus === "End") {
-            rent.requestStatus = 'Completed';
+            rent.requestStatus === 'Completed';
             await rent.save()
         }
 

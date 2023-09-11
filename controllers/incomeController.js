@@ -276,7 +276,7 @@ const userPaymentList = async (req, res) => {
                 // Assuming your User collection has _id field and Car has carOwner field
                 if (user) {
                     userPaymentList.push({
-                        status: payment.payout,
+                        status: payment.paymentData.paid,
                         carOwner: user,
                         car,
                         amount: payment.paymentData.amount,

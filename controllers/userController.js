@@ -308,11 +308,32 @@ const allUsers = async (req, res) => {
     }
 };
 
+const getUserById = async (req, res) => {
+    try {
+
+        const user = await User.findById(req.body.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User retrieved successfully', user })
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error User Info' });
+    }
+};
+
+
+
 // All Host
 const allHosts = async (req, res) => {
     try {
+
+        hostType = req.query.approve;
+
+
         const admin = await User.findOne({ _id: req.body.userId });
-        console.log(admin);
 
         if (!admin) {
             return res.status(404).json({ message: 'You are not an authorized person' });
@@ -324,16 +345,38 @@ const allHosts = async (req, res) => {
 
         const allHostsQuery = User.find({ role: "host" });
 
+
+        let searchFilter;
         const search = req.query.search || '';
         if (search) {
-            allHostsQuery.or([
-                { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-                { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-                { phoneNumber: { $regex: new RegExp('.*' + search + '.*', 'i') } }
-            ]);
+            console.log(search)
+            searchFilter = {
+                $or: [
+                    { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                    { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                    { phoneNumber: { $regex: new RegExp('.*' + search + '.*', 'i') } }
+                ]
+            };
+
+            allHostsQuery.and([searchFilter]);
         }
 
-        const allHosts = await allHostsQuery;
+        const approve = req.query.approve
+
+        let allHosts = await allHostsQuery;
+
+        if (approve === "true") {
+            allHosts = await User.find({ role: "host", approved: true, ...searchFilter });
+            const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+            // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+        }
+        if (approve === "false") {
+            allHosts = await User.find({ role: "host", approved: false, ...searchFilter });
+            const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+            // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+        }
 
         const carList = await Car.find({}); // Fetch all cars
 
@@ -375,6 +418,8 @@ const allHosts = async (req, res) => {
         res.status(500).json({ message: "All Hosts Retrieving Failed" });
     }
 };
+
+
 
 // Host User List
 const hostUserList = async (req, res) => {
@@ -594,6 +639,11 @@ const bannedUsers = async (req, res) => {
         }
         else if (isApprove === "trash") {
             user.isBanned = 'trash';
+            user.approved = true;
+            await user.save();
+        }
+        else if (isApprove === "cancel" && isApprove === "approve") {
+            user.isBanned = 'false';
             await user.save();
         }
 
@@ -906,4 +956,4 @@ const deleteById = async (req, res) => {
     }
 };
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById };
+module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById };

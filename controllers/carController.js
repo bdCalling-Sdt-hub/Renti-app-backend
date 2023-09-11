@@ -82,7 +82,8 @@ const allCars = async (req, res) => {
 
         const totalCar = count;
 
-        const reservedCar = await Rent.countDocuments({ payment: "Completed" });
+        // const reservedCar = await Rent.countDocuments({ tripStatus: "Completed" });
+        const reservedCar = await Car.countDocuments({ tripStatus: "End" });
 
         const activeCar = totalCar - reservedCar
 
