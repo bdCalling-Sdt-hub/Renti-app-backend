@@ -48,7 +48,6 @@ const totalIncome = async (req, res) => {
         );
 
 
-
         // Monthly Income
         function formatDate(date) {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -86,6 +85,8 @@ const totalIncome = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+
 
 const hostTotalIncome = async (req, res) => {
     try {

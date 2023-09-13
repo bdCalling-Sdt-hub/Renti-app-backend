@@ -234,19 +234,14 @@ const hostPaymentList = async (req, res) => {
 
 const userPaymentList = async (req, res) => {
     try {
-
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 3;
 
-        const payments = await Payment.find({}) // Fetch all payments
-            // .limit(limit)
-            // .skip((page - 1) * limit)
+        const payments = await Payment.find({})
             .populate("carId", "")
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1 });
 
         const count = await Payment.countDocuments();
-
-        console.log("fff", payments.length)
 
         if (!payments || payments.length === 0) {
             return res.status(404).json({ message: 'Payment not found' });
@@ -262,6 +257,7 @@ const userPaymentList = async (req, res) => {
         }
 
         const userPaymentList = [];
+        const userRentCompleted = {};
 
         for (const payment of payments) {
             const rentId = payment.rentId; // Assuming rentId is a field in Payment
@@ -273,8 +269,21 @@ const userPaymentList = async (req, res) => {
             if (rent) {
                 const userId = rent.userId;
                 const user = await User.findOne({ _id: userId });
+
+                // Log relevant variables for debugging
+                console.log('userId:', userId);
+                console.log('rent.status:', rent.status);
+
                 // Assuming your User collection has _id field and Car has carOwner field
                 if (user) {
+                    if (rent.requestStatus === 'Completed') {
+                        if (userRentCompleted[userId]) {
+                            userRentCompleted[userId]++;
+                        } else {
+                            userRentCompleted[userId] = 1;
+                        }
+                    }
+
                     userPaymentList.push({
                         status: payment.paymentData.paid,
                         carOwner: user,
@@ -282,14 +291,16 @@ const userPaymentList = async (req, res) => {
                         amount: payment.paymentData.amount,
                         time: payment.createdAt,
                         method: payment.paymentData.source.brand,
-                        rentTripNumbers: rent.rentTripNumber // Assuming tripNumber is a field in Rent
+                        rentTripNumbers: rent.rentTripNumber, // Assuming tripNumber is a field in Rent
+                        rentInfo: rent,
+                        hostInfo: await Rent.populate(rent, { path: 'hostId' }),
+                        completedRents: userRentCompleted[userId], // Include completed rents count
                     });
                 }
             }
         }
 
-        console.log(userPaymentList.length)
-
+        console.log(userPaymentList.length);
 
         res.status(200).json({
             message: "Payment Retrieved Successfully",
@@ -301,14 +312,12 @@ const userPaymentList = async (req, res) => {
                 previousPage: page - 1 > 0 ? page - 1 : null,
                 nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
             }
-        })
+        });
 
     } catch (error) {
         console.error(error);
     }
 };
-
-
 
 const userHourlyPaymentList = async (req, res) => {
     try {
@@ -414,7 +423,8 @@ const rentiPaymentList = async (req, res) => {
                 if (user) {
                     userPaymentList.push({
                         status: payment.payout,
-                        carOwner: user.fullName,
+                        payment: payment,
+                        carOwner: user,
                         totalAmount: payment.paymentData.amount,
                         hostPayment: payment.paymentData.amount - (payment.paymentData.amount / 100 * numberPercentages),
                         stripeFee: 0,
@@ -422,6 +432,9 @@ const rentiPaymentList = async (req, res) => {
                         time: payment.createdAt,
                         method: payment.paymentData.source.brand,
                         rentTripNumbers: rent.rentTripNumber, // Assuming tripNumber is a field in Rent
+                        rentInfo: rent,
+                        carInfo: rent.populate('carId'),
+                        carInfo: rent.populate('hostId')
                     });
                 }
             }
@@ -526,6 +539,76 @@ const userHourlyRentiPaymentList = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+// const userHourlyRentiPaymentList = async (req, res) => {
+//     try {
+//         const user = await User.findById(req.body.userId);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         if (user.role !== 'admin') {
+//             return res.status(401).json({ message: 'You are not Authorized' });
+//         }
+
+//         const now = new Date();
+//         let endOfDay = new Date(now);
+//         endOfDay.setHours(23, 59, 59, 999); // Set to end of the current day
+
+//         // Initialize an array to store daily income
+//         const dailyIncome = new Array(30).fill(0);
+
+//         for (let i = 0; i < 30; i++) {
+//             const startOfDay = new Date(endOfDay);
+//             startOfDay.setDate(endOfDay.getDate() - i);
+//             startOfDay.setHours(0, 0, 0, 0);
+
+//             endOfDay = new Date(startOfDay);
+//             endOfDay.setHours(23, 59, 59, 999);
+
+//             // Fetch payments made within the current day
+//             const payments = await Payment.find({
+//                 payout: true,
+//                 createdAt: { $gte: startOfDay, $lt: endOfDay },
+//             });
+
+//             // Calculate total income for the current day
+//             const totalIncome = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+//             // Store total income in the dailyIncome array
+//             dailyIncome[i] = {
+//                 date: startOfDay.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+//                 income: totalIncome,
+//             };
+//         }
+
+//         // Calculate the daily income ratio
+//         const dailyIncomeRatio = dailyIncome.map((incomeObj, index) => {
+//             if (index === 0) {
+//                 return {
+//                     date: incomeObj.date,
+//                     ratio: 1.0, // The first day's ratio is 100%
+//                 };
+//             } else {
+//                 const previousDayIncome = dailyIncome[index - 1].income;
+//                 const currentDayIncome = incomeObj.income;
+//                 const ratio = currentDayIncome / previousDayIncome;
+//                 return {
+//                     date: incomeObj.date,
+//                     ratio: ratio,
+//                 };
+//             }
+//         });
+
+//         res.status(200).json({
+//             message: 'Daily Income Ratios for the Last 30 Days Retrieved Successfully',
+//             dailyIncomeRatio: dailyIncomeRatio,
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error' });
+//     }
+// };
 
 
 

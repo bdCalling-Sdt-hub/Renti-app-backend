@@ -351,7 +351,7 @@ const deleteById = async (req, res) => {
         const id = req.params.id;
         const userAdmin = await User.findById(req.body.userId);
         console.log(userAdmin)
-        const user = await User.findById(id);
+        const car = await Car.findById(id);
 
         if (!userAdmin) {
             return res.status(404).json({ message: 'Your are not authorized' });
@@ -361,11 +361,11 @@ const deleteById = async (req, res) => {
             return res.status(404).json({ message: 'Your are not authorized' });
         }
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
         } else {
-            await user.deleteOne(); // No need to call save after deleteOne
-            res.status(200).json({ message: 'User deleted successfully' });
+            await car.deleteOne(); // No need to call save after deleteOne
+            res.status(200).json({ message: 'CAr deleted successfully' });
         }
     } catch (err) {
         console.error(err);

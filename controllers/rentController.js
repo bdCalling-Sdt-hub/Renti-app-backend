@@ -397,7 +397,7 @@ const startTrip = async (req, res) => {
     try {
 
         const { tripStatus, carImage } = req.body;
-        console.log(tripStatus)
+        console.log("kjfighkjhaerikghaikgjerhgkaerhgkitghekgheariugh", tripStatus)
 
         console.log(req.files.carImage)
 
@@ -414,6 +414,7 @@ const startTrip = async (req, res) => {
 
         const user = await User.findById(req.body.userId);
         const rent = await Rent.findOne({ _id: requestId });
+        console.log(rent)
 
         if (!rent) {
             return res.status(404).json({ message: 'Rent request not found' });
@@ -437,15 +438,20 @@ const startTrip = async (req, res) => {
             return res.status(404).json({ message: 'Car not found' });
         }
 
+
+
         car.tripStatus = tripStatus;
         car.carImage = kycFileNames;
         car.userId = user._id;
         await car.save();
 
+
         if (tripStatus === "End") {
-            rent.requestStatus === 'Completed';
-            await rent.save()
+            rent.requestStatus = 'Completed'; // Use the assignment operator (=) here
+            await rent.save();
         }
+
+
 
 
         res.status(200).json({ message: `Trip ${tripStatus} successfully` });

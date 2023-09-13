@@ -8,6 +8,7 @@ const Car = require("../models/Car");
 const Payment = require("../models/Payment");
 const Activity = require("../models/Activity");
 const Rent = require("../models/Rent");
+const Card = require("../models/Card");
 
 
 // Define a map to store user timers for sign up requests
@@ -330,9 +331,6 @@ const getUserById = async (req, res) => {
 const allHosts = async (req, res) => {
     try {
 
-        hostType = req.query.approve;
-
-
         const admin = await User.findOne({ _id: req.body.userId });
 
         if (!admin) {
@@ -362,11 +360,12 @@ const allHosts = async (req, res) => {
         }
 
         const approve = req.query.approve
+        const isBanned = req.query.isBanned
 
         let allHosts = await allHostsQuery;
 
-        if (approve === "true") {
-            allHosts = await User.find({ role: "host", approved: true, ...searchFilter });
+        if (approve === "true" && isBanned === "false") {
+            allHosts = await User.find({ role: "host", approved: true, ...searchFilter, isBanned: false });
             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
 
             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
@@ -378,8 +377,24 @@ const allHosts = async (req, res) => {
             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
         }
 
-        const carList = await Car.find({}); // Fetch all cars
 
+        const rentList = await Rent.find({});
+        console.log(rentList)
+
+        const cardList = await Card.find({});
+        const hostCardData = {};
+
+        // Iterate through the cardList and associate cards with their hosts
+        for (const card of cardList) {
+            const hostId = card.addedBy; // Adjust this to match your Card schema
+            if (!hostCardData[hostId]) {
+                hostCardData[hostId] = [];
+            }
+            hostCardData[hostId].push(card);
+        }
+
+
+        const carList = await Car.find({}); // Fetch all cars
         const hostCarCounts = {}; // Create an object to store host car counts
 
         for (const car of carList) {
@@ -396,9 +411,17 @@ const allHosts = async (req, res) => {
         const endIndex = page * limit;
 
         const paginatedHosts = allHosts.slice(startIndex, endIndex);
-        const hostData = paginatedHosts.map(host => ({
+
+        let hostData;
+        hostData = paginatedHosts.map(host => ({
             carCount: hostCarCounts[host._id] || 0,
             host,
+        }));
+
+        hostData = paginatedHosts.map(host => ({
+            carCount: hostCarCounts[host._id] || 0,
+            host,
+            cards: hostCardData[host._id] || [], // Attach card data to the host
         }));
 
         res.status(200).json({
@@ -935,25 +958,42 @@ const hostKyc = async (req, res) => {
 const deleteById = async (req, res) => {
     try {
         const id = req.params.id;
-        const user = await User.findById(req.body.userId);
-        const rent = await Rent.findById(id);
+        const user = await User.findById(id);
+        console.log(user)
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (!rent) {
-            return res.status(404).json({ message: 'Rent not found' });
-        } else if (user._id.equals(rent.userId)) {
-            await rent.deleteOne();
-            res.status(200).json({ message: 'Rent deleted successfully' });
-        } else {
-            res.status(403).json({ message: 'You are not authorized to delete this Rent' });
+        const rentsToDelete = await Rent.find({ userId: id });
+        const paymentsToDelete = await Payment.find({ userId: id });
+
+        if (!rentsToDelete || rentsToDelete.length === 0) {
+            // If there are no associated rents, delete the user directly
+
+            await user.deleteOne();
+            res.status(200).json({ message: 'User deleted successfully' });
+        } else if (!paymentsToDelete || paymentsToDelete.length === 0) {
+
+            await user.deleteOne();
+            res.status(200).json({ message: 'User deleted successfully' });
+        }
+        else {
+            // If there are associated rents, delete the rents first
+
+            await Rent.deleteMany({ userId: id });
+            await Payment.deleteMany({ userId: id });
+
+            // After deleting rents, delete the user
+            await user.deleteOne();
+
+            res.status(200).json({ message: 'User and associated rents deleted successfully' });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Error deleting Rent' });
+        res.status(500).json({ message: 'Error deleting user and associated rents' });
     }
 };
+
 
 module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById };
