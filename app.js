@@ -68,7 +68,7 @@ app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/ima
 
 // Start the server
 
-app.listen(3001, '103.161.9.106', () => {
+app.listen(3001, '192.168.10.14', () => {
   console.log('Server started on port 3001');
 });
 

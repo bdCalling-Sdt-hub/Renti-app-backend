@@ -954,7 +954,7 @@ const hostKyc = async (req, res) => {
         res.status(500).json({ message: 'Error ' })
     }
 }
-
+ 
 const deleteById = async (req, res) => {
     try {
         const id = req.params.id;
@@ -995,5 +995,21 @@ const deleteById = async (req, res) => {
     }
 };
 
+const logOut = async (req, res) => {
+    try {
+        const token = req.header('Authorization')
 
-module.exports = { signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById };
+        if (token) {
+            return res.status(200).json({ message: 'Logout successful' });
+        } else {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+    } catch (error) {
+
+    }
+}
+
+
+module.exports = {
+    signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
+};

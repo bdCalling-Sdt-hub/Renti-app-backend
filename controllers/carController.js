@@ -22,12 +22,21 @@ const createCar = async (req, res) => {
             });
         }
 
+        const publicImageUrl = [];
+
+        if (req.files && req.files.image) {
+            req.files.image.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                publicImageUrl.push(publicFileUrl);
+            });
+        }
+
         if (!user) {
             res.status(404).json({ message: "User not found" });
         } else if (user.role === 'host') {
             // Create the user in the database
 
-            const publicImageUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // const publicImageUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
 
             const car = await Car.create({
                 carModelName,

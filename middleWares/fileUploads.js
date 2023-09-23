@@ -34,7 +34,7 @@ const configureFileUpload = () => {
     const upload = multer({
         storage: storage,
         fileFilter: fileFilter,
-    }).fields([{ name: 'image', maxCount: 1 }, { name: 'KYC', maxCount: 3 }]);
+    }).fields([{ name: 'image', maxCount: 3 }, { name: 'KYC', maxCount: 5 }]);
 
     return upload;
 };
