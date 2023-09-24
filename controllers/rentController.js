@@ -14,7 +14,8 @@ const createRentRequest = async (req, res) => {
 
         const user = await User.findById(req.body.userId);
         const car = await Car.findById(req.params.carId);
-        console.log(user);
+        // console.log("Car", car);
+
         const hourlyRate = car.hourlyRate;
 
         const fromDate = new Date(startDate);
@@ -28,14 +29,14 @@ const createRentRequest = async (req, res) => {
         console.log(`Total hours: ${totalHours} hours and ${totalMinutes} minutes`);
 
         const totalAmount = Number(hourlyRate) * totalHours
-        console.log(totalAmount);
+        // console.log(totalAmount);
 
         if (!user) {
-            res.status(404).json({ message: 'You do not have permission to' });
+            return res.status(404).json({ message: 'You do not have permission to' });
         }
 
         if (user.role !== "user") {
-            res.status(401).json({ message: "Invalid role" });
+            return res.status(401).json({ message: "Invalid role" });
         }
 
         function generateUniqueFourDigitNumber() {
@@ -69,6 +70,9 @@ const createRentRequest = async (req, res) => {
             carId,
             hostId: car.carOwner
         })
+
+        car.popularity += 1;
+        await car.save();
 
         res.status(200).json({ message: 'Rent request successful', rents });
     } catch (error) {

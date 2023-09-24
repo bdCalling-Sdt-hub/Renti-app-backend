@@ -45,9 +45,9 @@ const getAll = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (user.role !== 'admin') {
-            return res.status(404).json({ message: 'You are not Authorization' });
-        }
+        // if (user.role !== 'admin') {
+        //     return res.status(404).json({ message: 'You are not Authorization' });
+        // }
 
         // Find the About Us entry (assuming there's only one)
         const termsCondition = await TermsCondition.findOne();

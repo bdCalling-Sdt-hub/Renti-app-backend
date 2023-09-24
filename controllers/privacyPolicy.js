@@ -45,9 +45,9 @@ const getAll = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (user.role !== 'admin') {
-            return res.status(404).json({ message: 'You are not Authorization' });
-        }
+        // if (user.role !== 'admin') {
+        //     return res.status(404).json({ message: 'You are not Authorization' });
+        // }
 
         // Find the Privacy Policy entry (assuming there's only one)
         const privacyPolicy = await PrivacyPolicy.findOne();

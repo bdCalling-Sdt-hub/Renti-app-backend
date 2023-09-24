@@ -126,6 +126,57 @@ const allCars = async (req, res) => {
     }
 };
 
+
+// Offer car
+const offerCars = async (req, res) => {
+    try {
+        //Search the users
+        const userTypes = req.params.filter;
+        const search = req.query.search || '';
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const searchRegExp = new RegExp('.*' + search + '.*', 'i');
+        const filter = {
+            $or: [
+                { carModelName: { $regex: searchRegExp } },
+                { carDescription: { $regex: searchRegExp } },
+                { carColor: { $regex: searchRegExp } },
+                { gearType: { $regex: searchRegExp } },
+            ]
+        }
+        const perMittedUser = await User.findById(req.body.userId);
+        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ popularity: -1 });
+        const count = await Car.countDocuments(filter);
+
+
+        const user = await User.findById(req.body.userId);
+        if (!cars) {
+            res.status(404).json({ message: 'Offer Car not found' });
+        }
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+        } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+            res.status(200).json({
+                message: "Offer Car Retrieved Successfully",
+                cars,
+                pagination: {
+                    totalDocuments: count,
+                    totalPage: Math.ceil(count / limit),
+                    currentPage: page,
+                    previousPage: page - 1 > 0 ? page - 1 : null,
+                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                }
+            });
+        } else {
+            res.status(501).json({ message: 'You are not authorized' });
+        }
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error getting  cars', error });
+    }
+};
+
 //Single cars
 const getCarsById = async (req, res) => {
     try {
@@ -384,4 +435,4 @@ const deleteById = async (req, res) => {
 
 
 
-module.exports = { createCar, allCars, getCarsById, updateById, deleteById, allHostCars }
+module.exports = { createCar, allCars, getCarsById, updateById, deleteById, allHostCars, offerCars }
