@@ -333,11 +333,13 @@ const allHostCars = async (req, res) => {
 
         const totalCar = totalCars;
 
-        // const reservedCar = await Rent.countDocuments({ payment: "Completed" });
-        const reservedCar = await Rent.countDocuments({
-            carId: { $in: cars.map(car => car._id) }, // Filter by the cars retrieved for the host
-            payment: 'Completed', // Adjust this condition based on your reservation status criteria
-        });
+        // const reservedCar = cars.tripStatus === "Start";
+        const reservedCar = cars.filter(car => car.tripStatus === "Start").length;
+
+        // const reservedCar = await Rent.countDocuments({
+        //     carId: { $in: cars.map(car => car._id) }, // Filter by the cars retrieved for the host
+        //     payment: 'Completed', // Adjust this condition based on your reservation status criteria
+        // });
 
         const activeCar = totalCar - reservedCar;
 
