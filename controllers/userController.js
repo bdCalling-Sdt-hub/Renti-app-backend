@@ -15,7 +15,7 @@ const Card = require("../models/Card");
 const userTimers = new Map();
 
 
-const signUp = async (req, res) => {
+const signUp = async (req, res, next) => {
     try {
         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
 
@@ -98,13 +98,14 @@ const signUp = async (req, res) => {
 
         try {
             emailWithNodemailer(emailData);
-            res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
+            console.log(emailData)
+            return res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
         } catch (emailError) {
             console.error('Failed to send verification email', emailError);
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating user', error });
+        next(error);
+        // return res.status(500).json({ message: 'Error creating user', error });
     }
 };
 
@@ -172,7 +173,7 @@ const verifyEmail = async (req, res) => {
 // };
 const signIn = async (req, res) => {
     try {
-        //Get email password from req.body
+        // Get email and password from req.body
         const { email, password } = req.body;
 
         // Find the user by email
@@ -189,9 +190,9 @@ const signIn = async (req, res) => {
             return res.status(401).json({ message: 'Authentication failed' });
         }
 
-        //Checking banned user
+        // Checking banned user
         if (user.isBanned === "true") {
-            return res.status(403).json({ message: 'User is banned! Please Contract authority' });
+            return res.status(403).json({ message: 'User is banned! Please contact the authority' });
         }
 
 
@@ -237,8 +238,9 @@ const signIn = async (req, res) => {
         res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
 
 
+
     } catch (error) {
-        console.error(error);
+        console.error("SignIn Error", error);
         res.status(500).json({ message: 'Error signing in', error });
     }
 };
@@ -298,7 +300,7 @@ const allUsers = async (req, res) => {
                 }
             })
         } else if (!users) {
-            return res.status(404).json({ message: 'User Not Found' });
+            res.status(404).json({ message: 'User Not Found' });
         } else {
             res.status(501).json({
                 message: 'You are not authorized to access the resources',
@@ -954,7 +956,7 @@ const hostKyc = async (req, res) => {
         res.status(500).json({ message: 'Error ' })
     }
 }
- 
+
 const deleteById = async (req, res) => {
     try {
         const id = req.params.id;

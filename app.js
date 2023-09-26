@@ -55,6 +55,15 @@ app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/ima
 
 
 
+app.use((error, req, res, next) => {
+  error.statusCode = error.statusCode || 500;
+  error.status = error.status || "error"
+  res.ststus(error.statusCode).json({
+    status: error.statusCode,
+    message: error.message
+  });
+})
+
 // function callEveryFiveSeconds(callback) {
 //   setInterval(callback, 5000);
 // }

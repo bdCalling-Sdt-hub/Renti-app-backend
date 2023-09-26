@@ -28,7 +28,7 @@ const configureFileUpload = () => {
     const upload = multer({
         storage: storage,
         fileFilter: fileFilter,
-    }).fields([{ name: 'carImage', maxCount: 3 }]);
+    }).fields([{ name: 'carImage', maxCount: 5 }]);
 
     return upload;
 };

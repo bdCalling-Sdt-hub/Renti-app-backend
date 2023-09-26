@@ -1,4 +1,4 @@
-const stripe = require('stripe')('sk_test_51NiWAKHloEqm4Hcr2bW9Od8OZL1ySHO48NmyqgylSNkvRfp3GRAtAPcgr0EldrlZQ5QbnrdPDOTlI8UmIGxv11di00HWChl1wB');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_TEST_KEY);
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');

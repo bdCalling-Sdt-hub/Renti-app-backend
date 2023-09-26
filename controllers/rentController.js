@@ -14,7 +14,8 @@ const createRentRequest = async (req, res) => {
 
         const user = await User.findById(req.body.userId);
         const car = await Car.findById(req.params.carId);
-        // console.log("Car", car);
+        console.log("Car", car);
+        console.log("User", user);
 
         const hourlyRate = car.hourlyRate;
 
@@ -66,9 +67,9 @@ const createRentRequest = async (req, res) => {
             totalHours,
             startDate,
             endDate,
-            userId: user._id,
-            carId,
-            hostId: car.carOwner
+            userId: user,
+            carId: car,
+            hostId: car.carOwner,
         })
 
         car.popularity += 1;
@@ -247,7 +248,7 @@ const allRentRequest = async (req, res) => {
         }
 
         if (user.role === 'user') {
-            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit).sort({ createdAt: -1 });
+            const userWiseRent = await Rent.find({ userId: user._id, ...filter }).limit(limit).skip((page - 1) * limit).populate('carId').populate('userId').populate('hostId').sort({ createdAt: -1 });
             const userCount = await Rent.countDocuments({ userId: user._id, ...filter });
             return res.status(200).json({
                 userWiseRent,
@@ -271,10 +272,10 @@ const allRentRequest = async (req, res) => {
     }
 };
 
-const getRentById = async (req, res) => {
+const getRentById = async (req, res, next) => {
     try {
         const id = req.params.id;
-        console.log(id);
+        console.log("Get Rent Id Error", id);
 
         const rents = await Rent.findById(id).populate("carId").populate("hostId");
 
@@ -301,12 +302,20 @@ const getRentById = async (req, res) => {
             message: "Rent retrieved successfully",
             rents: rents
         })
+
+        throw new Error(`processing error in request `)
+        // const error = new Error('Internal Server Error')
+        // error.status = "Failed";
+        // error.statusCode = 404;
+        // next(error)
     }
     catch (err) {
-        res.status(500).json({
-            message: err.message
-        })
-        console.log(err)
+        // const err = new Error('Internal Server Error')
+        // err.status = "Failed";
+        // err.statusCode = 404;
+        // next(err)
+        next(err)
+        // return res.status(500).json({ message: 'Error' })
     }
 }
 

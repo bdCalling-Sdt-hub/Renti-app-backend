@@ -9,6 +9,8 @@ const createOrUpdate = async (req, res) => {
         const { rating, comment } = req.body;
         const rent = await Rent.findById(req.params.requestId);
 
+
+
         if (Number(rating) > 5) {
             return res.status(201).json({ message: 'Review Rating Must be 5*' });
         }
@@ -18,6 +20,7 @@ const createOrUpdate = async (req, res) => {
         }
 
         if (rent.userId.toString() === req.body.userId.toString()) {
+            console.log(rent.requestStatus === "Completed")
             if (rent.requestStatus === "Completed") {
                 const review = await Review.create({
                     userId: req.body.userId,

@@ -12,9 +12,9 @@ const isValidUser = async (req, res, next) => {
             decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
             console.log(decodedData);
         } else if (!authorization) {
-            res.status(403).json({ error: 'Unauthorized' });
+            return res.status(403).json({ error: 'Unauthorized' });
         } else if (!decodedData) {
-            res.status(403).json({ error: 'Unauthorized' });
+            return res.status(403).json({ error: 'Unauthorized' });
         }
         req.body.userId = decodedData._id;
         next();

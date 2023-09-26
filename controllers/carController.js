@@ -54,7 +54,7 @@ const createCar = async (req, res) => {
                 hourlyRate,
                 gearType,
                 registrationDate,
-                carOwner: user._id,
+                carOwner: user,
             });
             res.status(201).json({ message: 'Car created successfully', car });
         } else {
@@ -325,6 +325,8 @@ const allHostCars = async (req, res) => {
         const cars = await Car.find(carQuery)
             .skip(skip)
             .limit(limit);
+
+        console.log("Hello Car", cars)
 
         // Count total matching cars for pagination
         const totalCars = await Car.countDocuments(carQuery);
