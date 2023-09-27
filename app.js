@@ -56,6 +56,14 @@ app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/ima
 
 
 app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    next('There was a problem');
+  } else if (err.message) {
+    res.status(500).send(err.message)
+  } else {
+    res.send('There was an error!')
+  }
+
   error.statusCode = error.statusCode || 500;
   error.status = error.status || "error"
   res.ststus(error.statusCode).json({
@@ -77,8 +85,8 @@ app.use((error, req, res, next) => {
 
 // Start the server
 
-app.listen(3000, '192.168.10.14', () => {
-  console.log('Server started on port 3000');
+app.listen(3001, '192.168.10.14', () => {
+  console.log('Server started on port 3001');
 });
 
 module.exports = app;
