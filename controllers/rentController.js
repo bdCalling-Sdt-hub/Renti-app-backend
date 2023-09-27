@@ -220,7 +220,7 @@ const allRentRequest = async (req, res, next) => {
         }
         console.log(req.body.userId);
         if (user.role === 'host') {
-            const rentRequest = await Rent.find({ hostId: req.body.userId });
+            const rentRequest = await Rent.find({ hostId: req.body.userId }).populate('carId').populate('userId').populate('hostId').sort({ createdAt: -1 });
             // console.log(rentRequest);
             return res.status(200).json({
                 message: "Your rent request", rentRequest

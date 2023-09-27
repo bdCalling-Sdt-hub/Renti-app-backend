@@ -237,11 +237,15 @@ const signIn = async (req, res, next) => {
 
         const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
 
-        const activity = await Activity.create({
-            operatingSystem: deviceModel,
-            browser,
-            userId: user._id
-        });
+
+        if (user.role === 'admin') {
+            const activity = await Activity.create({
+                operatingSystem: deviceModel,
+                browser,
+                userId: user._id
+            });
+        }
+
 
         //Success response
         res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
