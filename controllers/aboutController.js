@@ -26,7 +26,6 @@ const createOrUpdate = async (req, res, next) => {
             return res.status(201).json({ message: 'About Us content created successfully', about });
         }
 
-        // If an entry exists, update its content
         about.content = content;
         await about.save();
 
