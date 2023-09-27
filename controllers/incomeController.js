@@ -6,7 +6,7 @@ const User = require("../models/User");
 const Rent = require("../models/Rent");
 const Percentage = require("../models/Percentage");
 
-const hostPayment = async (req, res) => {
+const hostPayment = async (req, res, next) => {
     try {
 
         const carInfo = await Car.find({});
@@ -68,15 +68,11 @@ const hostPayment = async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({
-
-            message: "Payment Retrieve Failure"
-        })
-        console.log(error)
+        next(error)
     }
 };
 
-// const hostPaymentList = async (req, res) => {
+// const hostPaymentList = async (req, res, next) => {
 //     try {
 //         const payments = await Payment.find({}); // Fetch all payments
 //         if (!payments || payments.length === 0) {
@@ -132,7 +128,7 @@ const hostPayment = async (req, res) => {
 // };
 
 
-const hostPaymentList = async (req, res) => {
+const hostPaymentList = async (req, res, next) => {
     try {
 
         const page = Number(req.query.page) || 1;
@@ -226,13 +222,12 @@ const hostPaymentList = async (req, res) => {
         })
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        next(error)
     }
 };
 
 
-const userPaymentList = async (req, res) => {
+const userPaymentList = async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 3;
@@ -315,11 +310,11 @@ const userPaymentList = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+        next(error)
     }
 };
 
-const userHourlyPaymentList = async (req, res) => {
+const userHourlyPaymentList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
         if (!user) {
@@ -377,9 +372,7 @@ const userHourlyPaymentList = async (req, res) => {
 };
 
 
-
-
-const rentiPaymentList = async (req, res) => {
+const rentiPaymentList = async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
@@ -475,14 +468,11 @@ const rentiPaymentList = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            message: 'Payment Retrieve Failure',
-        });
-        console.log(error);
+        next(error)
     }
 };
 
-const userHourlyRentiPaymentList = async (req, res) => {
+const userHourlyRentiPaymentList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
         if (!user) {
@@ -535,12 +525,11 @@ const userHourlyRentiPaymentList = async (req, res) => {
             hourlyPaymentCounts: hourlyPaymentCounts,
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        next(error)
     }
 };
 
-// const userHourlyRentiPaymentList = async (req, res) => {
+// const userHourlyRentiPaymentList = async (req, res, next) => {
 //     try {
 //         const user = await User.findById(req.body.userId);
 //         if (!user) {

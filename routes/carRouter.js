@@ -23,7 +23,7 @@ router.get('/host', isValidUser, allHostCars);
 router.get('/:id', isValidUser, getCarsById);
 
 //Update single car
-router.post('/update/:id', isValidUser, updateById);
+router.post('/update/:id', upload, isValidUser, updateById);
 
 //Delete car
 router.delete('/delete/:id', isValidUser, deleteById);

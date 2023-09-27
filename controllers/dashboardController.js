@@ -5,7 +5,7 @@ const Percentage = require('../models/Percentage');
 const Rent = require('../models/Rent');
 const User = require('../models/User');
 
-const totalIncome = async (req, res) => {
+const totalIncome = async (req, res, next) => {
     try {
         // Total Income
         const payments = await Payment.find({})
@@ -81,14 +81,11 @@ const totalIncome = async (req, res) => {
             totalMonthlyIncome
         });
     } catch (error) {
-        console.error("Error fetching payments:", error);
-        res.status(500).json({ error: "Internal server error" });
+        next(error)
     }
 }
 
-
-
-const hostTotalIncome = async (req, res) => {
+const hostTotalIncome = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
 
@@ -159,12 +156,11 @@ const hostTotalIncome = async (req, res) => {
             // totalMonthlyIncome
         });
     } catch (error) {
-        console.error("Error fetching payments:", error);
-        res.status(500).json({ error: "Internal server error" });
+        next(error)
     }
 };
 
-const hostPaymentList = async (req, res) => {
+const hostPaymentList = async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
@@ -263,15 +259,12 @@ const hostPaymentList = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            message: 'Payment Retrieve Failure',
-        });
-        console.log(error);
+        next(error)
     }
 };
 
 
-// const hostTotalIncome = async (req, res) => {
+// const hostTotalIncome = async (req, res, next) => {
 //     try {
 //         const user = await User.findById(req.body.userId);
 //         console.log(user._id)
@@ -319,7 +312,7 @@ const hostPaymentList = async (req, res) => {
 // };
 
 
-const rentsStatus = async (req, res) => {
+const rentsStatus = async (req, res, next) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -370,12 +363,11 @@ const rentsStatus = async (req, res) => {
             tripCompleted
         });
     } catch (error) {
-        console.error('Error fetching rents:', error);
-        res.status(500).json({ error: 'An error occurred while fetching rents.' });
+        next(error)
     }
 }
 
-const allEarnings = async (req, res) => {
+const allEarnings = async (req, res, next) => {
     try {
         const rentType = req.params.all;
 
@@ -558,8 +550,7 @@ const allEarnings = async (req, res) => {
 
 
     } catch (error) {
-        console.error('Error fetching rents:', error);
-        res.status(500).json({ error: 'An error occurred while fetching rents.' });
+        next(error)
     }
 }
 

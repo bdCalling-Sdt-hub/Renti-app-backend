@@ -1,7 +1,7 @@
 const About = require("../models/About");
 const User = require("../models/User");
 
-const createOrUpdate = async (req, res) => {
+const createOrUpdate = async (req, res, next) => {
     const { content } = req.body;
 
     try {
@@ -30,14 +30,15 @@ const createOrUpdate = async (req, res) => {
         about.content = content;
         await about.save();
 
+
         return res.status(200).json({ message: 'About Us content updated successfully', about });
+
     } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'Server error' });
+        next(error)
     }
 };
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
 
@@ -62,8 +63,7 @@ const getAll = async (req, res) => {
         return res.status(200).json({ message: 'About Us content retrieved successfully', about: { ...about.toObject(), content: aboutContentWithoutTags } });
         // return res.status(200).json({ message: 'About Us content retrieved successfully', about });
     } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'Server error' });
+        next(error)
     }
 };
 

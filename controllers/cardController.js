@@ -6,7 +6,7 @@ const Card = require("../models/Card");
 
 
 //Add car
-const createCard = async (req, res) => {
+const createCard = async (req, res, next) => {
     try {
         const { accountHolderName, phoneNumber, email, bankAccountNumber } = req.body;
 
@@ -31,13 +31,12 @@ const createCard = async (req, res) => {
         }
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating user', error });
+        next(error)
     }
 };
 
 //All cars seen by user and admin
-const allCard = async (req, res) => {
+const allCard = async (req, res, next) => {
     try {
 
         const user = await User.findById(req.body.userId);
@@ -59,7 +58,7 @@ const allCard = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ message: 'Error getting  cars', error });
+        next(error)
     }
 };
 

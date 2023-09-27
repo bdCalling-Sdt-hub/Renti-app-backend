@@ -17,6 +17,8 @@ const cardRouter = require('./routes/cardRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
+const useragent = require('express-useragent');
+app.use(useragent.express());
 
 // Connect to the MongoDB database
 mongoose.connect(process.env.MONGODB_CONNECTION, {
@@ -56,9 +58,19 @@ app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/ima
 
 
 app.use((error, req, res, next) => {
+
+  if (res.headersSent) {
+    next('Something a problem');
+  } else if (err.message) {
+    return res.status(500).send(err.message)
+  } else {
+    return res.send('There was an error!')
+  }
+
+
   error.statusCode = error.statusCode || 500;
   error.status = error.status || "error"
-  res.ststus(error.statusCode).json({
+  res.status(error.statusCode).json({
     status: error.statusCode,
     message: error.message
   });

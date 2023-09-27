@@ -109,10 +109,8 @@ const signUp = async (req, res, next) => {
     }
 };
 
-
-
 //Verify email
-const verifyEmail = async (req, res) => {
+const verifyEmail = async (req, res, next) => {
     try {
         const { oneTimeCode, email } = req.body;
         const user = await User.findOne({ email: email });
@@ -127,7 +125,7 @@ const verifyEmail = async (req, res) => {
             res.status(401).json({ message: 'Failed to verify' });
         };
     } catch (error) {
-        res.status(500).json({ message: 'Error finding when verify email' });
+        next(error)
     }
 };
 
@@ -171,7 +169,7 @@ const verifyEmail = async (req, res) => {
 //         res.status(500).json({ message: 'Error signing in', error });
 //     }
 // };
-const signIn = async (req, res) => {
+const signIn = async (req, res, next) => {
     try {
         // Get email and password from req.body
         const { email, password } = req.body;
@@ -196,6 +194,23 @@ const signIn = async (req, res) => {
         }
 
 
+
+        function extractDeviceModel(userAgent) {
+            const regex = /\(([^)]+)\)/;
+            const matches = userAgent.match(regex);
+
+            if (matches && matches.length >= 2) {
+                return matches[1];
+            } else {
+                return 'Unknown';
+            }
+        }
+
+        const userA = req.headers['user-agent'];
+
+        const deviceModel = extractDeviceModel(userA);
+
+
         function getBrowserInfo(userAgent) {
             const ua = userAgent.toLowerCase();
 
@@ -210,27 +225,21 @@ const signIn = async (req, res) => {
             } else if (ua.includes('chrome')) {
                 return 'Chrome';
             } else {
-                return 'Unknown'; // Default to 'Unknown' if the browser is not recognized
+                return 'Unknown';
             }
         }
 
 
-        //Get OS and device name or model from request headers
         const os = req.headers['user-agent'];
-        const deviceNameOrModel = req.headers['user-agent'];
+        // const deviceNameOrModel = req.headers['user-agent'];
         const userAgent = req.get('user-agent');
         const browser = getBrowserInfo(userAgent);
 
-        //Token, set the Cokkie
-        //   const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
         const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
-        // res.cookie('accessToken', accessToken, { maxAge: 60  60  1000, });
-        // console.log('Controller Cookie:', req.cookies.accessToken);
 
         const activity = await Activity.create({
-            operatingSystem: os,
+            operatingSystem: deviceModel,
             browser,
-            deviceModel: deviceNameOrModel,
             userId: user._id
         });
 
@@ -240,13 +249,12 @@ const signIn = async (req, res) => {
 
 
     } catch (error) {
-        console.error("SignIn Error", error);
-        res.status(500).json({ message: 'Error signing in', error });
+        next(error)
     }
 };
 
 
-const userActivity = async (req, res) => {
+const userActivity = async (req, res, next) => {
     try {
         const activity = await Activity.find({});
         const user = User.findById(req.body.userId);
@@ -257,13 +265,13 @@ const userActivity = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ message: 'Error retriving activity' })
+        next(error)
     }
 }
 
 
 //All users
-const allUsers = async (req, res) => {
+const allUsers = async (req, res, next) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
         // const users = await User.find();
@@ -307,11 +315,11 @@ const allUsers = async (req, res) => {
             });
         }
     } catch (error) {
-        res.status(500).json({ message: "User Retrieved Error" })
+        next(error)
     }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
     try {
 
         const user = await User.findById(req.body.userId);
@@ -322,15 +330,12 @@ const getUserById = async (req, res) => {
 
         res.status(200).json({ message: 'User retrieved successfully', user })
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error User Info' });
+        next(error)
     }
 };
 
-
-
 // All Host
-const allHosts = async (req, res) => {
+const allHosts = async (req, res, next) => {
     try {
 
         const admin = await User.findOne({ _id: req.body.userId });
@@ -439,15 +444,12 @@ const allHosts = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "All Hosts Retrieving Failed" });
+        next(error)
     }
 };
 
-
-
 // Host User List
-const hostUserList = async (req, res) => {
+const hostUserList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
 
@@ -471,13 +473,12 @@ const hostUserList = async (req, res) => {
             userList: rentedCars,
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+        next(error)
     }
 };
 
 // Single Host User
-const getHostUserById = async (req, res) => {
+const getHostUserById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const host = await Rent.findById(id);
@@ -499,15 +500,12 @@ const getHostUserById = async (req, res) => {
         })
     }
     catch (err) {
-        // console.log(err);
-        res.status(500).json({
-            message: err.message
-        })
+        next(error)
     }
 };
 
 
-const allUserInfo = async (req, res) => {
+const allUserInfo = async (req, res, next) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
         console.log(admin);
@@ -564,13 +562,12 @@ const allUserInfo = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "All Hosts Retrieving Failed" });
+        next(error)
     }
 };
 
 // All User With Trip Amount
-const allUsersWithTripAmount = async (req, res) => {
+const allUsersWithTripAmount = async (req, res, next) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
 
@@ -622,13 +619,12 @@ const allUsersWithTripAmount = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "User Data Retrieving Failed" });
+        next(error)
     }
 };
 
 //Banned users
-const bannedUsers = async (req, res) => {
+const bannedUsers = async (req, res, next) => {
     try {
         // Step 1: Fetch the admin and user information
         const { isApprove } = req.body;
@@ -681,23 +677,23 @@ const bannedUsers = async (req, res) => {
         res.status(200).json({ message: `User ${isApprove} Successfully` });
     } catch (error) {
         // Step 7: Handle errors
-        res.status(500).json({ message: 'Error while banning user', error });
+        next(error)
     }
 };
 
 // All Banned Users
-const allBannedUsers = async (req, res) => {
+const allBannedUsers = async (req, res, next) => {
     try {
         const bannedUsers = await User.find({ isBanned: "true" });
 
         res.status(200).json({ message: 'Banned User Retrieve Successfully', bannedUsers });
     } catch (error) {
-        res.status(500).json({ message: 'Error while fetching banned users', error });
+        next(error)
     }
 }
 
 //Update user
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     try {
         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image } = req.body;
         const id = req.params.id;
@@ -731,22 +727,21 @@ const updateUser = async (req, res) => {
             return res.status(403).json({ message: 'You do not have permission to update' });
         }
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error updating user' });
+        next(error)
     }
 };
 
-const allBlockedUsers = async (req, res) => {
+const allBlockedUsers = async (req, res, next) => {
     try {
         const blockedUsers = await User.find({ isBlock: true });
 
         res.status(200).json({ message: 'Blocked User Retrieve Successfully', blockedUsers });
     } catch (error) {
-        res.status(500).json({ message: 'Error while fetching blocked users', error });
+        next(error)
     }
 }
 
-const blockedUsers = async (req, res) => {
+const blockedUsers = async (req, res, next) => {
     try {
         // Step 1: Fetch the admin and user information
         const { isBlocked } = req.body;
@@ -790,12 +785,12 @@ const blockedUsers = async (req, res) => {
         res.status(200).json({ message: `User ${isApprove} Successfully` });
     } catch (error) {
         // Step 7: Handle errors
-        res.status(500).json({ message: 'Error while banning user', error });
+        next(error)
     }
 };
 
 //Approve host
-const approveHost = async (req, res) => {
+const approveHost = async (req, res, next) => {
     try {
         const id = req.params.id;
         const user = await User.findOne({ _id: id, role: 'host' });
@@ -815,13 +810,12 @@ const approveHost = async (req, res) => {
             return res.status(403).json({ message: 'You do not have permission to approve Host' });
         }
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error updating user' });
+        next(error)
     }
 };
 
 // Change Password
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
     const { email, currentPassword, newPassword, reTypedPassword } = req.body;
     try {
         const user = await User.findOne({ email })
@@ -850,12 +844,11 @@ const changePassword = async (req, res) => {
             user
         });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: 'An error occurred' });
+        next(error)
     }
 }
 
-const forgetPassword = async (req, res) => {
+const forgetPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
 
@@ -905,12 +898,12 @@ const forgetPassword = async (req, res) => {
 
         res.status(201).json({ message: 'Sent One Time Code successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error sending mail', error });
+        next(error)
     }
 };
 
 //Verify one time code
-const verifyOneTimeCode = async (req, res) => {
+const verifyOneTimeCode = async (req, res, next) => {
     try {
         const { email } = req.headers;
         const { oneTimeCode } = req.body;
@@ -925,12 +918,12 @@ const verifyOneTimeCode = async (req, res) => {
             res.status(400).json({ success: false, message: 'Failed to verify user' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error verifiying mail', error });
+        next(error)
     }
 };
 
 //Update password without login
-const updatePassword = async (req, res) => {
+const updatePassword = async (req, res, next) => {
     try {
         const { email } = req.headers;
         console.log(req.body.password);
@@ -944,20 +937,19 @@ const updatePassword = async (req, res) => {
             res.status(200).json({ message: 'Password updated successfully' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error updating password', error });
+        next(error)
     }
 };
 
-const hostKyc = async (req, res) => {
+const hostKyc = async (req, res, next) => {
     try {
 
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: 'Error ' })
+        next(error)
     }
 }
 
-const deleteById = async (req, res) => {
+const deleteById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const user = await User.findById(id);
@@ -992,12 +984,11 @@ const deleteById = async (req, res) => {
             res.status(200).json({ message: 'User and associated rents deleted successfully' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error deleting user and associated rents' });
+        next(error)
     }
 };
 
-const logOut = async (req, res) => {
+const logOut = async (req, res, next) => {
     try {
         const token = req.header('Authorization')
 
@@ -1007,7 +998,7 @@ const logOut = async (req, res) => {
             return res.status(401).json({ message: 'Invalid token' });
         }
     } catch (error) {
-
+        next(error)
     }
 }
 
