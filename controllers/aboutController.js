@@ -29,8 +29,10 @@ const createOrUpdate = async (req, res, next) => {
         about.content = content;
         await about.save();
 
-
-        return res.status(200).json({ message: 'About Us content updated successfully', about });
+        // Remove HTML tags from the "about" content
+        const aboutContentWithoutTags = about.content.replace(/<\/?[^>]+(>|$)/g, "");
+        return res.status(200).json({ message: 'Terms Condition content retrieved successfully', about: { ...about.toObject(), content: aboutContentWithoutTags } });
+        // return res.status(200).json({ message: 'About Us content updated successfully', about });
 
     } catch (error) {
         next(error)
