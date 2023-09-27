@@ -5,7 +5,7 @@ const { updateById } = require("./carController");
 const Payment = require("../models/Payment");
 const { payment } = require("./paymentController");
 
-const createRentRequest = async (req, res) => {
+const createRentRequest = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.body;
         console.log(startDate, endDate);
@@ -77,12 +77,11 @@ const createRentRequest = async (req, res) => {
 
         res.status(200).json({ message: 'Rent request successful', rents });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error creating car", error: error })
+        next(error)
     }
 };
 
-const acceptRentRequest = async (req, res) => {
+const acceptRentRequest = async (req, res, next) => {
     try {
         const rentRequest = await Rent.findOne({ _id: req.params.requestId });
         const car = await Car.findOne({ _id: rentRequest.carId });
@@ -104,12 +103,11 @@ const acceptRentRequest = async (req, res) => {
         res.status(200).json({ message: 'Request accepted' });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Error accepting rent request', error: error });
+        next(error)
     }
 };
 
-const allRentRequest = async (req, res) => {
+const allRentRequest = async (req, res, next) => {
     try {
         const searchTerm = req.params.filter;
         const search = req.query.search || '';
@@ -280,20 +278,20 @@ const getRentById = async (req, res, next) => {
         const rents = await Rent.findById(id).populate("carId").populate("hostId");
 
         if (!rents) {
-            res.status(404).json({ message: 'Rent Request is not found' });
+            return res.status(404).json({ message: 'Rent Request is not found' });
         }
 
         const user = await User.findById(req.body.userId)
         if (!user) {
-            res.status(404).json({ message: 'User is not found' });
+            return res.status(404).json({ message: 'User is not found' });
         }
 
         if (rents.userId.toString() !== req.body.userId) {
-            res.status(404).json({ message: "User Not Matching" })
+            return res.status(404).json({ message: "User Not Matching" })
         }
 
         if (user.role === 'host') {
-            res.status(404).json({
+            return res.status(404).json({
                 message: "You do not have permission to"
             })
         }
@@ -304,22 +302,13 @@ const getRentById = async (req, res, next) => {
         })
 
         throw new Error(`processing error in request `)
-        // const error = new Error('Internal Server Error')
-        // error.status = "Failed";
-        // error.statusCode = 404;
-        // next(error)
     }
     catch (err) {
-        // const err = new Error('Internal Server Error')
-        // err.status = "Failed";
-        // err.statusCode = 404;
-        // next(err)
         next(err)
-        // return res.status(500).json({ message: 'Error' })
     }
 }
 
-const updateRentById = async (req, res) => {
+const updateRentById = async (req, res, next) => {
     try {
         const id = req.params.id;
 
@@ -375,13 +364,11 @@ const updateRentById = async (req, res) => {
         })
     }
     catch (err) {
-        res.status(500).json({
-            message: err.message
-        })
+        next(error)
     }
 }
 
-const deleteRentById = async (req, res) => {
+const deleteRentById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const user = await User.findById(req.body.userId);
@@ -400,12 +387,11 @@ const deleteRentById = async (req, res) => {
             res.status(403).json({ message: 'You are not authorized to delete this Rent' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error deleting Rent' });
+        next(error)
     }
 };
 
-const startTrip = async (req, res) => {
+const startTrip = async (req, res, next) => {
     const requestId = req.params.requestId;
     try {
 
@@ -469,12 +455,11 @@ const startTrip = async (req, res) => {
 
         res.status(200).json({ message: `Trip ${tripStatus} successfully` });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error starting trip' });
+        next(error)
     }
 };
 
-const hostRentList = async (req, res) => {
+const hostRentList = async (req, res, next) => {
 
     try {
         const user = await User.findById(req.body.userId);
@@ -501,12 +486,11 @@ const hostRentList = async (req, res) => {
             rentedCars,
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+        next(error)
     }
 };
 
-const gethostRentById = async (req, res) => {
+const gethostRentById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const host = await Rent.findById(id);
@@ -528,8 +512,7 @@ const gethostRentById = async (req, res) => {
             userDetails: rent
         })
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to retrieve host user's cars" });
+        next(error)
     }
 };
 

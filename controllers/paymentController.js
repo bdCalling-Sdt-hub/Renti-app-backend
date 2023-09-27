@@ -6,7 +6,7 @@ const Car = require('../models/Car');
 const User = require('../models/User');
 
 
-const payment = async (req, res) => {
+const payment = async (req, res, next) => {
     try {
         const { product, token } = req.body;
         const { requestId } = req.params;
@@ -61,8 +61,7 @@ const payment = async (req, res) => {
 
         res.status(200).json({ message: 'Payment success', paymentData });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'An error occurred while processing the payment.', error: error.message });
+        next(error)
     }
 };
 

@@ -6,7 +6,7 @@ const Rent = require("../models/Rent");
 
 
 //Add car
-const createCar = async (req, res) => {
+const createCar = async (req, res, next) => {
     try {
         const { carModelName, hourlyRate, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate } = req.body;
 
@@ -62,13 +62,12 @@ const createCar = async (req, res) => {
         }
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating user', error });
+        next(error)
     }
 };
 
 //All cars seen by user and admin
-const allCars = async (req, res) => {
+const allCars = async (req, res, next) => {
     try {
         //Search the users
         const userTypes = req.params.filter;
@@ -122,13 +121,13 @@ const allCars = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ message: 'Error getting  cars', error });
+        next(error)
     }
 };
 
 
 // Offer car
-const offerCars = async (req, res) => {
+const offerCars = async (req, res, next) => {
     try {
         //Search the users
         const userTypes = req.params.filter;
@@ -173,12 +172,12 @@ const offerCars = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ message: 'Error getting  cars', error });
+        next(error)
     }
 };
 
 //Single cars
-const getCarsById = async (req, res) => {
+const getCarsById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const car = await Car.findById(id);
@@ -196,16 +195,13 @@ const getCarsById = async (req, res) => {
         }
     }
     catch (err) {
-        // console.log(err);
-        res.status(500).json({
-            message: err.message
-        })
+        next(error)
     }
 };
 
 //All hoist car
 
-// const allHostCars = async (req, res) => {
+// const allHostCars = async (req, res, next) => {
 //     try {
 //         const host = await User.findById(req.body.userId);
 
@@ -279,7 +275,7 @@ const getCarsById = async (req, res) => {
 //     }
 // };
 
-const allHostCars = async (req, res) => {
+const allHostCars = async (req, res, next) => {
     try {
         const host = await User.findById(req.body.userId);
 
@@ -358,23 +354,35 @@ const allHostCars = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error retrieving host cars' });
+        next(error)
     }
 };
 
 //Update car
-const updateById = async (req, res) => {
+const updateById = async (req, res, next) => {
     try {
-        const { carModelName, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
-        // const id = req.params.id;
-        // console.log("id:", id);
+        const { carModelName, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
+
+        const kycFileNames = [];
+
+        if (req.files && req.files.KYC) {
+            req.files.KYC.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                kycFileNames.push(publicFileUrl);
+            });
+        }
+
+        const publicImageUrl = [];
+
+        if (req.files && req.files.image) {
+            req.files.image.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                publicImageUrl.push(publicFileUrl);
+            });
+        }
 
         const car = await Car.findById(req.params.id);
         const user = await User.findById(req.body.userId);
-        console.log("meow/meow", car.carOwner)
-        console.log("meow/meow", user._id);
-        console.log("meow/meow", req.body.userId);
 
         if (!user) {
             res.status(404).json({ message: "User not found" });
@@ -384,18 +392,19 @@ const updateById = async (req, res) => {
             res.status(404).json({ message: "Car not found" });
         } else if (user._id.equals(car.carOwner)) {
             car.carModelName = carModelName;
-            car.image = image;
+            car.image = publicImageUrl;
             car.year = year;
             car.carLicenseNumber = carLicenseNumber
             car.carDescription = carDescription
             car.insuranceStartDate = insuranceStartDate
-            car.insuranceEndDate = insuranceStartDate
+            car.insuranceEndDate = insuranceEndDate
             car.carLicenseImage = carLicenseImage;
             car.carColor = carColor;
             car.carDoors = carDoors
             car.carSeats = carSeats
             car.totalRun = totalRun;
             car.gearType = gearType;
+            car.KYC = kycFileNames;
 
             await car.save();
             res.status(200).json({ message: 'Car updated successfully' });
@@ -404,13 +413,13 @@ const updateById = async (req, res) => {
         }
 
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: 'Error updating car' });
+        next(error)
     }
 };
 
+
 // Delete car by owner
-const deleteById = async (req, res) => {
+const deleteById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const userAdmin = await User.findById(req.body.userId);
@@ -432,8 +441,7 @@ const deleteById = async (req, res) => {
             res.status(200).json({ message: 'CAr deleted successfully' });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error deleting car' });
+        next(error)
     }
 };
 

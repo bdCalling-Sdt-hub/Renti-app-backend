@@ -1,10 +1,8 @@
 const Percentage = require("../models/Percentage");
 const User = require("../models/User");
 
-const createOrUpdate = async (req, res) => {
+const createOrUpdate = async (req, res, next) => {
     const { content } = req.body;
-
-    console.log(content)
 
     try {
 
@@ -34,12 +32,11 @@ const createOrUpdate = async (req, res) => {
 
         return res.status(200).json({ message: 'Percentage updated successfully', about });
     } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'Server error' });
+        next(error)
     }
 };
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
 
@@ -60,8 +57,7 @@ const getAll = async (req, res) => {
 
         return res.status(200).json({ message: 'Percentage retrieved successfully', percentage });
     } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'Server error' });
+        next(error)
     }
 };
 

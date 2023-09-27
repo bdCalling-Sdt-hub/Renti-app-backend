@@ -3,7 +3,7 @@ const Rent = require("../models/Rent");
 const Review = require("../models/Review");
 const User = require("../models/User");
 
-const createOrUpdate = async (req, res) => {
+const createOrUpdate = async (req, res, next) => {
     try {
         // const user = req.body.userId;
         const { rating, comment } = req.body;
@@ -51,12 +51,11 @@ const createOrUpdate = async (req, res) => {
 
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating review' });
+        next(error)
     }
 };
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
 
     try {
         const user = await User.findById(req.body.userId);
@@ -76,8 +75,7 @@ const getAll = async (req, res) => {
 
 
     } catch (error) {
-        console.error(error.message);
-        return res.status(500).json({ message: 'Server error' });
+        next(error)
     }
 };
 
