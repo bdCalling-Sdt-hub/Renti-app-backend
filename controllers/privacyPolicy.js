@@ -56,10 +56,10 @@ const getAll = async (req, res, next) => {
         }
 
         // Remove HTML tags from the "about" content
-        const privacyPolicyContentWithoutTags = privacyPolicy.content.replace(/<\/?[^>]+(>|$)/g, "");
+        // const privacyPolicyContentWithoutTags = privacyPolicy.content.replace(/<\/?[^>]+(>|$)/g, "");
 
-        return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', privacyPolicy: { ...privacyPolicy.toObject(), content: privacyPolicyContentWithoutTags } });
-        // return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', about });
+        // return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', privacyPolicy: { ...privacyPolicy.toObject(), content: privacyPolicyContentWithoutTags } });
+        return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', privacyPolicy });
     } catch (error) {
         next(error)
     }
