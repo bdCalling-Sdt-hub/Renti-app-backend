@@ -55,10 +55,10 @@ const getAll = async (req, res, next) => {
             return res.status(404).json({ message: 'Terms Condition content not found' });
         }
 
-        // Remove HTML tags from the "about" content
         // const termsConditionContentWithoutTags = termsCondition.content.replace(/<\/?[^>]+(>|$)/g, "");
 
         // return res.status(200).json({ message: 'Terms Condition content retrieved successfully', termsCondition: { ...termsCondition.toObject(), content: termsConditionContentWithoutTags } });
+
         return res.status(200).json({ message: 'Terms Condition content retrieved successfully', termsCondition });
     } catch (error) {
         next(error)
