@@ -59,6 +59,7 @@ const getAll = async (req, res, next) => {
         // const privacyPolicyContentWithoutTags = privacyPolicy.content.replace(/<\/?[^>]+(>|$)/g, "");
 
         // return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', privacyPolicy: { ...privacyPolicy.toObject(), content: privacyPolicyContentWithoutTags } });
+
         return res.status(200).json({ message: 'Privacy Policy content retrieved successfully', privacyPolicy });
     } catch (error) {
         next(error)
