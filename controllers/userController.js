@@ -452,6 +452,34 @@ const allHosts = async (req, res, next) => {
     }
 };
 
+// Admin info
+const adminInfo = async (req, res, next) => {
+    try {
+        const host = await User.findOne({ _id: req.body.userId });
+
+        if (!host) {
+            return res.status(404).json({ message: 'You are not an authorized person' });
+        }
+
+        if (host.role !== 'host') {
+            return res.status(404).json({ message: 'You are not a host' });
+        }
+
+        // Find admin users and select specific fields
+        const adminData = await User.find({ role: 'admin' }).select('fullName address email phoneNumber');
+
+        // Now you have an array of objects with the selected fields for each admin user
+
+        // Example: Return admin data in the response
+        return res.status(200).json({ message: 'Admin data retrieved successfully', adminData });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
 // Host User List
 const hostUserList = async (req, res, next) => {
     try {
@@ -699,9 +727,29 @@ const allBannedUsers = async (req, res, next) => {
 //Update user
 const updateUser = async (req, res, next) => {
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, image } = req.body;
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, RFC, creaditCardNumber } = req.body;
+
+        const kycFileNames = [];
+
+        if (req.files && req.files.KYC) {
+            req.files.KYC.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                kycFileNames.push(publicFileUrl);
+            });
+        }
+
+        const publicImageUrl = [];
+
+        if (req.files && req.files.image) {
+            req.files.image.forEach((file) => {
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                publicImageUrl.push(publicFileUrl);
+            });
+        }
+
         const id = req.params.id;
         const user = await User.findById(id);
+
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -721,16 +769,17 @@ const updateUser = async (req, res, next) => {
             user.address = address;
             // user.password = user.password;
             user.dateOfBirth = dateOfBirth;
-            user.KYC = KYC;
+            user.KYC = kycFileNames;
             user.RFC = RFC;
             user.creaditCardNumber = creaditCardNumber;
-            user.image = image;
+            user.image = publicImageUrl;
             await user.save();
             return res.status(200).json({ message: 'User updated successfully', user });
         } else {
             return res.status(403).json({ message: 'You do not have permission to update' });
         }
     } catch (error) {
+        console.log(error.message);
         next(error)
     }
 };
@@ -1008,5 +1057,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
+    signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
 };

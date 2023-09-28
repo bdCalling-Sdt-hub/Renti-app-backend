@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut, adminInfo } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -23,6 +23,8 @@ router.get('/activity', isValidUser, userActivity);
 router.get('/all', isValidUser, allUsers);
 
 router.get('/all-host', isValidUser, allHosts);
+
+router.get('/admin-info', isValidUser, adminInfo);
 
 // router.get('/all-approve-host', isValidUser, allApprovedHosts);
 
@@ -47,7 +49,7 @@ router.get('/blocked/all', allBlockedUsers);
 router.post('/blocked/:id', isValidUser, blockedUsers);
 
 //Update user
-router.post('/update/:id', isValidUser, updateUser);
+router.post('/update/:id', upload, isValidUser, updateUser);
 
 //Approve host
 router.post('/approve/:id', isValidUser, approveHost);
