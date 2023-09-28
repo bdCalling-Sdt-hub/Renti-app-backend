@@ -84,6 +84,13 @@ const createRentRequest = async (req, res, next) => {
 const acceptRentRequest = async (req, res, next) => {
     try {
         const rentRequest = await Rent.findOne({ _id: req.params.requestId });
+
+        const { request } = req.body;
+
+        if (!request) {
+            res.status(404).json({ message: 'Please send rent request status Ex: Accepted or Rejected' })
+        }
+
         const car = await Car.findOne({ _id: rentRequest.carId });
 
         if (!rentRequest) {
@@ -98,9 +105,19 @@ const acceptRentRequest = async (req, res, next) => {
             res.status(401).json({ message: 'You do not have permission' })
         }
 
-        rentRequest.requestStatus = 'Accepted';
-        await rentRequest.save();
-        res.status(200).json({ message: 'Request accepted' });
+        if (request === 'Accepted') {
+            rentRequest.requestStatus = 'Accepted';
+            await rentRequest.save();
+            return res.status(200).json({ message: 'Request Accepted' });
+        }
+
+        if (request === 'Rejected') {
+            rentRequest.requestStatus = 'Rejected';
+            await rentRequest.save();
+            return res.status(200).json({ message: 'Request Rejected' });
+        }
+
+
 
     } catch (error) {
         next(error)
@@ -396,9 +413,6 @@ const startTrip = async (req, res, next) => {
     try {
 
         const { tripStatus, carImage } = req.body;
-        console.log("kjfighkjhaerikghaikgjerhgkaerhgkitghekgheariugh", tripStatus)
-
-        console.log(req.files.carImage)
 
         const kycFileNames = [];
 

@@ -84,7 +84,7 @@ const allCars = async (req, res, next) => {
             ]
         }
         const perMittedUser = await User.findById(req.body.userId);
-        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ createdAt: -1 });
+        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ popularity: -1 });
         const count = await Car.countDocuments(filter);
 
 
@@ -194,8 +194,8 @@ const getCarsById = async (req, res, next) => {
             res.status(401).json({ message: 'You are not authorized' });
         }
     }
-    catch (err) {
-        next(err)
+    catch (error) {
+        next(error)
     }
 };
 
