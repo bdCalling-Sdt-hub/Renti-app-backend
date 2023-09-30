@@ -15,7 +15,7 @@ const carSchema = new mongoose.Schema({
     carSeats: { type: String, required: false },
     totalRun: { type: String, required: false },
     hourlyRate: { type: String, required: true },
-    offerHourlyRate: { type: String, required: true },
+    offerHourlyRate: { type: String, required: false },
     registrationDate: { type: String, required: true },
     popularity: { type: Number, default: 0 },
     gearType: { type: String, enum: ['Manual', 'Autometic'], default: 'Manual' },

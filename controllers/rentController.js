@@ -77,7 +77,8 @@ const createRentRequest = async (req, res, next) => {
 
         res.status(200).json({ message: 'Rent request successful', rents });
     } catch (error) {
-        next(error)
+        // next(error)
+        console.log(error.message);
     }
 };
 
