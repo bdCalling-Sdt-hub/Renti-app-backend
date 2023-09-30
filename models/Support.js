@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-const howRentiWorkSchema = new mongoose.Schema({
+const supportSchema = new mongoose.Schema({
     content: { type: String, required: [true, 'Content is must be Required'] },
 },
     { timestamps: true },
 
 );
 
-module.exports = mongoose.model('HowRentiWork', howRentiWorkSchema);
+module.exports = mongoose.model('Suppoet', supportSchema);
