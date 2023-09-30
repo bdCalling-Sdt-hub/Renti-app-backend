@@ -185,14 +185,20 @@ const getCarsById = async (req, res, next) => {
             res.status(404).json({ message: 'Car not found', error });
         }
         console.log(car.carOwner);
-        if (req.body.userId === car.carOwner.toString()) {
-            res.status(200).json({
-                message: "Car retrieved successfully",
-                cars: car
-            })
-        } else {
-            res.status(401).json({ message: 'You are not authorized' });
-        }
+        // if (req.body.userId === car.carOwner.toString()) {
+        //     res.status(200).json({
+        //         message: "Car retrieved successfully",
+        //         cars: car
+        //     })
+        // } else {
+        //     res.status(401).json({ message: 'You are not authorized' });
+        // }
+
+        res.status(200).json({
+            message: "Car retrieved successfully",
+            cars: car
+        })
+
     }
     catch (error) {
         next(error)
