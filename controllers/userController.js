@@ -40,6 +40,9 @@ const signUp = async (req, res, next) => {
 
         let imageFileName = '';
 
+        console.log(req.files.image)
+
+
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file

@@ -20,6 +20,7 @@ const configureFileUpload = () => {
     });
 
     const fileFilter = (req, file, cb) => {
+        console.log(file)
         if (file.fieldname === 'image') {
             file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'
                 ? cb(null, true)
@@ -34,7 +35,7 @@ const configureFileUpload = () => {
     const upload = multer({
         storage: storage,
         fileFilter: fileFilter,
-    }).fields([{ name: 'image', maxCount: 3 }, { name: 'KYC', maxCount: 5 }]);
+    }).fields([{ name: 'image', maxCount: 1 }, { name: 'KYC', maxCount: 5 }]);
 
     return upload;
 };
