@@ -531,7 +531,7 @@ const getHostUserById = async (req, res, next) => {
             userDetails: rent.userId
         })
     }
-    catch (err) {
+    catch (error) {
         next(error)
     }
 };
