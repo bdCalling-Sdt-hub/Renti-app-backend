@@ -180,7 +180,7 @@ const offerCars = async (req, res, next) => {
 const getCarsById = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const car = await Car.findById(id);
+        const car = await Car.findById(id).populate('carOwner', '');
         if (!car) {
             res.status(404).json({ message: 'Car not found', error });
         }
