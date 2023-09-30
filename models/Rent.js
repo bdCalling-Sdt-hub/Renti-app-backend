@@ -5,6 +5,7 @@ const rentSchema = new mongoose.Schema({
     totalAmount: { type: String, required: [true, 'Total Ammount is Required'] },
     totalHours: { type: String, required: [true, 'Total Hour is Required'] },
     requestStatus: { type: String, enum: ['Accepted', 'Rejected', 'Pending', 'Completed'], default: 'Pending' },
+    sentRequest: { type: String, enum: ['Active', 'Cancel'], default: 'Active' },
     startDate: { type: Date, required: [true, 'From Date is Required'] },
     endDate: { type: Date, required: [true, 'To Date is Required'] },
     payment: { type: String, enum: ['Pending', 'Completed'], default: 'Pending' },
