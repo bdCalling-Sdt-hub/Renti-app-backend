@@ -8,7 +8,7 @@ const Rent = require("../models/Rent");
 //Add car
 const createCar = async (req, res, next) => {
     try {
-        const { carModelName, hourlyRate, image, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate } = req.body;
+        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate } = req.body;
 
         // // Find the user
         const user = await User.findById(req.body.userId);
@@ -52,7 +52,9 @@ const createCar = async (req, res, next) => {
                 carSeats,
                 totalRun,
                 hourlyRate,
+                offerHourlyRate,
                 gearType,
+                carType,
                 registrationDate,
                 carOwner: user,
             });
@@ -84,7 +86,7 @@ const allCars = async (req, res, next) => {
             ]
         }
         const perMittedUser = await User.findById(req.body.userId);
-        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ popularity: -1 });
+        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ createdAt: -1 });
         const count = await Car.countDocuments(filter);
 
 
@@ -125,9 +127,7 @@ const allCars = async (req, res, next) => {
     }
 };
 
-
-// Offer car
-const offerCars = async (req, res, next) => {
+const luxuryCars = async (req, res, next) => {
     try {
         //Search the users
         const userTypes = req.params.filter;
@@ -136,29 +136,34 @@ const offerCars = async (req, res, next) => {
         const limit = Number(req.query.limit) || 10;
         const searchRegExp = new RegExp('.*' + search + '.*', 'i');
         const filter = {
-            $or: [
-                { carModelName: { $regex: searchRegExp } },
-                { carDescription: { $regex: searchRegExp } },
-                { carColor: { $regex: searchRegExp } },
-                { gearType: { $regex: searchRegExp } },
+            $and: [ // Use $and to combine multiple conditions
+                {
+                    $or: [
+                        { carModelName: { $regex: searchRegExp } },
+                        { carDescription: { $regex: searchRegExp } },
+                        { carColor: { $regex: searchRegExp } },
+                        { gearType: { $regex: searchRegExp } },
+                    ]
+                },
+                { carType: "Luxury" } // Filter luxury cars
             ]
-        }
+        };
         const perMittedUser = await User.findById(req.body.userId);
-        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ popularity: -1 });
+        const luxuryCars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ popularity: -1 });
         const count = await Car.countDocuments(filter);
 
 
         const user = await User.findById(req.body.userId);
-        if (!cars) {
-            res.status(404).json({ message: 'Offer Car not found' });
+        if (!luxuryCars) {
+            res.status(404).json({ message: 'Car not found' });
         }
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
         } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
             res.status(200).json({
-                message: "Offer Car Retrieved Successfully",
-                cars,
+                message: "Luxury Car Retrieved Successfully",
+                luxuryCars,
                 pagination: {
                     totalDocuments: count,
                     totalPage: Math.ceil(count / limit),
@@ -176,6 +181,68 @@ const offerCars = async (req, res, next) => {
     }
 };
 
+
+// Offer car
+const offerCars = async (req, res, next) => {
+    try {
+        //Search the users
+        const userTypes = req.params.filter;
+        const search = req.query.search || '';
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const searchRegExp = new RegExp('.*' + search + '.*', 'i');
+
+        // Define the filter for searching cars
+        const filter = {
+            $and: [ // Use $and to combine multiple conditions
+                {
+                    $or: [
+                        { carModelName: { $regex: searchRegExp } },
+                        { carDescription: { $regex: searchRegExp } },
+                        { carColor: { $regex: searchRegExp } },
+                        { gearType: { $regex: searchRegExp } },
+                    ],
+                },
+                {
+                    offerHourlyRate: { $lte: "hourlyRate" } // Compare offerHourlyRate to hourlyRate
+                }
+            ]
+        };
+        const perMittedUser = await User.findById(req.body.userId);
+        const offerCars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '');
+
+        const count = await Car.countDocuments(filter);
+
+
+        const user = await User.findById(req.body.userId);
+        if (!offerCars) {
+            res.status(404).json({ message: 'Offer Car not found' });
+        }
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+        } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+            res.status(200).json({
+                message: "Offer Car Retrieved Successfully",
+                offerCars,
+                pagination: {
+                    totalDocuments: count,
+                    totalPage: Math.ceil(count / limit),
+                    currentPage: page,
+                    previousPage: page - 1 > 0 ? page - 1 : null,
+                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                }
+            });
+        } else {
+            res.status(501).json({ message: 'You are not authorized' });
+        }
+
+    } catch (error) {
+        // next(error)
+        console.log(error.message);
+    }
+};
+
 //Single cars
 const getCarsById = async (req, res, next) => {
     try {
@@ -184,15 +251,6 @@ const getCarsById = async (req, res, next) => {
         if (!car) {
             res.status(404).json({ message: 'Car not found', error });
         }
-        console.log(car.carOwner);
-        // if (req.body.userId === car.carOwner.toString()) {
-        //     res.status(200).json({
-        //         message: "Car retrieved successfully",
-        //         cars: car
-        //     })
-        // } else {
-        //     res.status(401).json({ message: 'You are not authorized' });
-        // }
 
         res.status(200).json({
             message: "Car retrieved successfully",
@@ -453,4 +511,4 @@ const deleteById = async (req, res, next) => {
 
 
 
-module.exports = { createCar, allCars, getCarsById, updateById, deleteById, allHostCars, offerCars }
+module.exports = { createCar, allCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars }
