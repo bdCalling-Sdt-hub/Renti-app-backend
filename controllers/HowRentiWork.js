@@ -48,10 +48,10 @@ const getAll = async (req, res, next) => {
             return res.status(404).json({ message: 'howRentiWork Us content not found' });
         }
 
-        const howRentiWorkContentWithoutTags = howRentiWork.content.replace(/<\/?[^>]+(>|$)/g, "");
+        // const howRentiWorkContentWithoutTags = howRentiWork.content.replace(/<\/?[^>]+(>|$)/g, "");
 
-        return res.status(200).json({ message: 'How Renti Work Us content retrieved successfully', howRentiWork: { ...howRentiWork.toObject(), content: howRentiWorkContentWithoutTags } });
-        // return res.status(200).json({ message: 'About Us content retrieved successfully', about });
+        // return res.status(200).json({ message: 'How Renti Work Us content retrieved successfully', howRentiWork: { ...howRentiWork.toObject(), content: howRentiWorkContentWithoutTags } });
+        return res.status(200).json({ message: 'How Renti Work content retrieved successfully', howRentiWork });
     } catch (error) {
         next(error)
     }

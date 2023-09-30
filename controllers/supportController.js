@@ -47,10 +47,10 @@ const getAll = async (req, res, next) => {
             return res.status(404).json({ message: 'support Us content not found' });
         }
 
-        const supportContentWithoutTags = support.content.replace(/<\/?[^>]+(>|$)/g, "");
+        // const supportContentWithoutTags = support.content.replace(/<\/?[^>]+(>|$)/g, "");
 
-        return res.status(200).json({ message: 'How Renti Work Us content retrieved successfully', support: { ...support.toObject(), content: supportContentWithoutTags } });
-        // return res.status(200).json({ message: 'About Us content retrieved successfully', about });
+        // return res.status(200).json({ message: 'How Renti Work Us content retrieved successfully', support: { ...support.toObject(), content: supportContentWithoutTags } });
+        return res.status(200).json({ message: 'Support content retrieved successfully', support });
     } catch (error) {
         next(error)
     }
