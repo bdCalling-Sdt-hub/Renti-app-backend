@@ -81,6 +81,32 @@ const createRentRequest = async (req, res, next) => {
     }
 };
 
+const userCancelRentRequest = async (req, res, next) => {
+    try {
+        const rentRequest = await Rent.findOne({ _id: req.params.requestId });
+
+        const car = await Car.findOne({ _id: rentRequest.carId });
+
+        if (!rentRequest) {
+            res.status(404).json({ message: 'Request not found' })
+        }
+
+        if (!car) {
+            res.status(404).json({ message: 'Car not found' });
+        }
+
+
+        rentRequest.sentRequest = 'Cancel';
+        await rentRequest.save();
+        return res.status(200).json({ message: 'Request Cancel' });
+
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
 const acceptRentRequest = async (req, res, next) => {
     try {
         const rentRequest = await Rent.findOne({ _id: req.params.requestId });
@@ -533,4 +559,4 @@ const gethostRentById = async (req, res, next) => {
 
 
 
-module.exports = { createRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById, startTrip, hostRentList, gethostRentById };
+module.exports = { createRentRequest, userCancelRentRequest, acceptRentRequest, allRentRequest, getRentById, updateRentById, deleteRentById, startTrip, hostRentList, gethostRentById };
