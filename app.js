@@ -18,6 +18,8 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 const useragent = require('express-useragent');
+const HowRentiWork = require('./routes/HowRentiWorkRouter');
+const Support = require('./routes/supportRouter');
 app.use(useragent.express());
 
 // Connect to the MongoDB database
@@ -44,6 +46,8 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/dashboard', dashBoardRouter);
 app.use('/api/income', incomeRouter);
 app.use('/api/about', aboutRouter);
+app.use('/api/howRentiWork', HowRentiWork);
+app.use('/api/support', Support);
 app.use('/api/privacyPolicy', privacyPolicy);
 app.use('/api/termsConditionRouter', termsConditionRouter);
 app.use('/api/percentage', percentageRouter);
