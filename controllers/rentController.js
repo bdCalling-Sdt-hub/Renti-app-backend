@@ -61,6 +61,8 @@ const createRentRequest = async (req, res, next) => {
         // Combine the random number with the "RENT-" prefix
         const rentTripNumber = `RENT-${randomFourDigitNumber}`;
 
+        const carOwner = await User.findById(car.carOwner);
+
         const rents = await Rent.create({
             rentTripNumber,
             totalAmount,
@@ -69,8 +71,9 @@ const createRentRequest = async (req, res, next) => {
             endDate,
             userId: user,
             carId: car,
-            hostId: car.carOwner,
+            hostId: carOwner,
         })
+
 
         car.popularity += 1;
         await car.save();
