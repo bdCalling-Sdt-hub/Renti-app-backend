@@ -40,8 +40,6 @@ const signUp = async (req, res, next) => {
 
         let imageFileName = '';
 
-        console.log(req.files.image)
-
 
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
@@ -741,12 +739,20 @@ const updateUser = async (req, res, next) => {
             });
         }
 
-        const publicImageUrl = [];
+        // const publicImageUrl = '';
+
+        // if (req.files && req.files.image) {
+        //     req.files.image.forEach((file) => {
+        //         const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+        //         publicImageUrl.push(publicFileUrl);
+        //     });
+        // }
+
+        let publicFileUrl = ''; // Initialize the publicFileUrl variable
 
         if (req.files && req.files.image) {
             req.files.image.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
-                publicImageUrl.push(publicFileUrl);
+                publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
             });
         }
 
@@ -775,7 +781,7 @@ const updateUser = async (req, res, next) => {
             user.KYC = kycFileNames;
             user.RFC = RFC;
             user.creaditCardNumber = creaditCardNumber;
-            user.image = publicImageUrl;
+            user.image = publicFileUrl;
             await user.save();
             return res.status(200).json({ message: 'User updated successfully', user });
         } else {
@@ -783,7 +789,7 @@ const updateUser = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error.message);
-        next(error)
+        // next(error)
     }
 };
 
