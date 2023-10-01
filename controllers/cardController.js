@@ -17,7 +17,7 @@ const createCard = async (req, res, next) => {
 
         if (!user) {
             res.status(404).json({ message: "User not found" });
-        } else if (user.role === 'host' || user.role === 'admin') {
+        } else if (user.role === 'user' || user.role === 'host' || user.role === 'admin') {
             const card = await Card.create({
                 accountHolderName,
                 phoneNumber,
@@ -48,7 +48,7 @@ const allCard = async (req, res, next) => {
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
-        } else if (user.role === 'host' || user.role === 'admin') {
+        } else if (user.role === 'host' || user.role === 'host' || user.role === 'admin') {
             res.status(200).json({
                 message: "Card Retrived Successfull",
                 card,
