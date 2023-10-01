@@ -521,7 +521,7 @@ const hostRentList = async (req, res, next) => {
         const ownedCars = await Car.find({ carOwner: user._id });
 
         // Find cars rented by the host user
-        const rentedCars = await Rent.find({ hostId: user._id });
+        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId').populate('hostId');
         // console.log(rentedCars)
 
         return res.status(200).json({
