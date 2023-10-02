@@ -9,6 +9,7 @@ const Payment = require("../models/Payment");
 const Activity = require("../models/Activity");
 const Rent = require("../models/Rent");
 const Card = require("../models/Card");
+const Review = require("../models/Review");
 
 
 // Define a map to store user timers for sign up requests
@@ -485,6 +486,7 @@ const adminInfo = async (req, res, next) => {
 const hostUserList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
+        console.log("object found", user);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -494,16 +496,22 @@ const hostUserList = async (req, res, next) => {
             return res.status(403).json({ message: 'You are not authorized' });
         }
 
+        const review = await Review.find({ hostId: user._id });
+        console.log("review", review)
+
         // Find cars owned by the host user
         const ownedCars = await Car.find({ carOwner: user._id });
 
         // Find cars rented by the host user
         const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId');
 
+        // console.log(rentedCars)
+
         return res.status(200).json({
             message: 'Host user car and rented car lists retrieved successfully',
             // ownedCars,
             userList: rentedCars,
+
         });
     } catch (error) {
         next(error)
@@ -727,10 +735,13 @@ const allBannedUsers = async (req, res, next) => {
 
 //Update user
 const updateUser = async (req, res, next) => {
+
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, RFC, creaditCardNumber } = req.body;
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, RFC, creaditCardNumber, ine } = req.body;
 
         const kycFileNames = [];
+
+
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
@@ -770,6 +781,10 @@ const updateUser = async (req, res, next) => {
             return res.status(409).json({ message: 'User already exists! Please login' });
         }
 
+        if (publicFileUrl) {
+            user.image = publicFileUrl
+        }
+
         if (user._id.toString() === req.body.userId) {
             user.fullName = fullName;
             user.email = email;
@@ -780,8 +795,9 @@ const updateUser = async (req, res, next) => {
             user.dateOfBirth = dateOfBirth;
             user.KYC = kycFileNames;
             user.RFC = RFC;
+            user.ine = ine;
             user.creaditCardNumber = creaditCardNumber;
-            user.image = publicFileUrl;
+            // user.image = publicFileUrl;
             await user.save();
             return res.status(200).json({ message: 'User updated successfully', user });
         } else {

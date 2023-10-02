@@ -20,8 +20,8 @@ const configureFileUpload = () => {
     });
 
     const fileFilter = (req, file, cb) => {
-        console.log(file)
         if (file.fieldname === 'image') {
+
             file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'
                 ? cb(null, true)
                 : cb(null, false);
@@ -29,7 +29,7 @@ const configureFileUpload = () => {
             file.mimetype === 'application/msword' || file.mimetype === 'application/pdf'
                 ? cb(null, true)
                 : cb(null, false);
-        }
+        } 
     };
 
     const upload = multer({

@@ -27,6 +27,7 @@ const carSchema = new mongoose.Schema({
     carOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     paymentId: { type: mongoose.Schema.Types.ObjectId },
+    averageRatings: { type: Number, required: false }
 },
     { timestamps: true },
 
