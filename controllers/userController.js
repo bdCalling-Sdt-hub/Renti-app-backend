@@ -735,80 +735,147 @@ const allBannedUsers = async (req, res, next) => {
 }
 
 //Update user
+// const updateUser = async (req, res, next) => {
+
+//     try {
+//         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, RFC, creaditCardNumber, ine } = req.body;
+
+//         const kycFileNames = [];
+
+
+
+//         if (req.files && req.files.KYC) {
+//             req.files.KYC.forEach((file) => {
+//                 const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+//                 kycFileNames.push(publicFileUrl);
+//             });
+//         }
+
+//         // const publicImageUrl = '';
+
+//         // if (req.files && req.files.image) {
+//         //     req.files.image.forEach((file) => {
+//         //         const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+//         //         publicImageUrl.push(publicFileUrl);
+//         //     });
+//         // }
+
+//         let publicFileUrl = ''; // Initialize the publicFileUrl variable
+
+//         if (req.files && req.files.image) {
+//             req.files.image.forEach((file) => {
+//                 publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+//             });
+//         }
+
+//         const id = req.params.id;
+//         const user = await User.findById(id);
+
+
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Check if the user already exists
+//         const userExist = await User.findOne({ email });
+//         if (userExist && userExist._id.toString() !== id) {
+//             return res.status(409).json({ message: 'User already exists! Please login' });
+//         }
+
+//         if (publicFileUrl) {
+//             user.image = publicFileUrl;
+//         }
+
+//         if (kycFileNames) {
+//             user.image = kycFileNames;
+//         }
+
+//         if (user._id.toString() === req.body.userId) {
+//             user.fullName = fullName;
+//             user.email = email;
+//             user.phoneNumber = phoneNumber;
+//             user.gender = gender;
+//             user.address = address;
+//             // user.password = user.password;
+//             user.dateOfBirth = dateOfBirth;
+//             user.KYC = kycFileNames;
+//             user.RFC = RFC;
+//             user.ine = ine;
+//             user.creaditCardNumber = creaditCardNumber;
+//             // user.image = publicFileUrl;
+//             await user.save();
+//             return res.status(200).json({ message: 'User updated successfully', user });
+//         } else {
+//             return res.status(403).json({ message: 'You do not have permission to update' });
+//         }
+//     } catch (error) {
+//         // console.log(error.message);
+//         next(error)
+//     }
+// };
+
 const updateUser = async (req, res, next) => {
-
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, RFC, creaditCardNumber, ine } = req.body;
-
-        const kycFileNames = [];
-
-
-
-        if (req.files && req.files.KYC) {
-            req.files.KYC.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
-                kycFileNames.push(publicFileUrl);
-            });
-        }
-
-        // const publicImageUrl = '';
-
-        // if (req.files && req.files.image) {
-        //     req.files.image.forEach((file) => {
-        //         const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
-        //         publicImageUrl.push(publicFileUrl);
-        //     });
-        // }
-
-        let publicFileUrl = ''; // Initialize the publicFileUrl variable
-
-        if (req.files && req.files.image) {
-            req.files.image.forEach((file) => {
-                publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
-            });
-        }
-
         const id = req.params.id;
         const user = await User.findById(id);
-
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         // Check if the user already exists
+        const { email } = req.body;
         const userExist = await User.findOne({ email });
+
         if (userExist && userExist._id.toString() !== id) {
             return res.status(409).json({ message: 'User already exists! Please login' });
         }
 
-        if (publicFileUrl) {
-            user.image = publicFileUrl
+        // Create an object to store the updated user properties
+        const updatedUser = {};
+
+        // List of fields that can be updated
+        const allowedFields = [
+            'fullName',
+            'email',
+            'phoneNumber',
+            'gender',
+            'address',
+            'dateOfBirth',
+            'RFC',
+            'creaditCardNumber',
+            'ine',
+        ];
+
+        // Iterate through the allowed fields and update the user object
+        for (const field of allowedFields) {
+            if (req.body[field]) {
+                updatedUser[field] = req.body[field];
+            }
         }
 
-        if (user._id.toString() === req.body.userId) {
-            user.fullName = fullName;
-            user.email = email;
-            user.phoneNumber = phoneNumber;
-            user.gender = gender;
-            user.address = address;
-            // user.password = user.password;
-            user.dateOfBirth = dateOfBirth;
-            user.KYC = kycFileNames;
-            user.RFC = RFC;
-            user.ine = ine;
-            user.creaditCardNumber = creaditCardNumber;
-            // user.image = publicFileUrl;
-            await user.save();
-            return res.status(200).json({ message: 'User updated successfully', user });
-        } else {
-            return res.status(403).json({ message: 'You do not have permission to update' });
+        // Handle updating image and KYC separately
+        if (req.files && req.files.image) {
+            const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            updatedUser.image = publicFileUrl;
         }
+
+        if (req.files && req.files.KYC) {
+            const kycFileNames = req.files.KYC.map(file => `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`);
+            updatedUser.KYC = kycFileNames;
+        }
+
+        // Update the user object
+        Object.assign(user, updatedUser);
+
+        await user.save();
+
+        return res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
-        console.log(error.message);
-        // next(error)
+        next(error);
     }
 };
+
 
 const allBlockedUsers = async (req, res, next) => {
     try {
