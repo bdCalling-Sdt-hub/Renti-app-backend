@@ -28,6 +28,7 @@ const totalIncome = async (req, res, next) => {
         // Today Income
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        console.log(today)
 
         const todayPayments = await Payment.find({ createdAt: { $gte: today } });
 
@@ -39,8 +40,10 @@ const totalIncome = async (req, res, next) => {
         oneWeekAgo.setHours(0, 0, 0, 0);
 
         const weeklyPayments = await Payment.find({
-            createdAt: { $gte: oneWeekAgo, $lte: today }
+            createdAt: { $gte: oneWeekAgo, $lte: today.setDate(today.getDate() + 1) }
         });
+
+        console.log(weeklyPayments)
 
         const weeklyIncome = weeklyPayments.reduce(
             (total, payment) => total + payment.paymentData.amount,
@@ -424,6 +427,7 @@ const allEarnings = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .populate('userId', '')
                 .populate('carId', '')
+                .populate('hostId', '')
                 .populate('rentId', '');
 
             const count = await Payment.countDocuments({
@@ -469,6 +473,7 @@ const allEarnings = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .populate('userId', '')
                 .populate('carId', '')
+                .populate('hostId', '')
                 .populate('rentId', '');
 
             const count = await Payment.countDocuments({
@@ -515,6 +520,7 @@ const allEarnings = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .populate('userId', '')
                 .populate('carId', '')
+                .populate('hostId', '')
                 .populate('rentId', '');
 
             const count = await Payment.countDocuments({

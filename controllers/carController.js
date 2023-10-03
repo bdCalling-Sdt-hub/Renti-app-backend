@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { createCarService, getCarsService, getById, update, remove, getsSearchByName } = require("../services/CarService");
 const User = require("../models/User");
 const Rent = require("../models/Rent");
+const { addNotification } = require("./notificationController");
 
 
 //Add car
@@ -12,6 +13,7 @@ const createCar = async (req, res, next) => {
 
         // // Find the user
         const user = await User.findById(req.body.userId);
+
 
         const kycFileNames = [];
 
@@ -58,6 +60,19 @@ const createCar = async (req, res, next) => {
                 registrationDate,
                 carOwner: user,
             });
+
+
+            const message = user.fullName + ' Create ' + carModelName
+            const newNotification = {
+                message: message,
+                image: user.image,
+                linkId: car._id,
+                type: 'admin'
+            }
+            const notification = await addNotification(newNotification)
+            // io.emit('admin-notification', notification);
+            io.emit('create', newNotification);
+
             res.status(201).json({ message: 'Car created successfully', car });
         } else {
             res.status(501).json({ message: "You are not authorized" });
@@ -65,6 +80,7 @@ const createCar = async (req, res, next) => {
 
     } catch (error) {
         next(error)
+        // console.log(error.message)
     }
 };
 
@@ -93,7 +109,7 @@ const allCars = async (req, res, next) => {
         const totalCar = count;
 
         // const reservedCar = await Rent.countDocuments({ tripStatus: "Completed" });
-        const reservedCar = await Car.countDocuments({ tripStatus: "End" });
+        const reservedCar = await Car.countDocuments({ tripStatus: "Start" });
 
         const activeCar = totalCar - reservedCar
 

@@ -4,6 +4,7 @@ const Car = require("../models/Car");
 const { updateById } = require("./carController");
 const Payment = require("../models/Payment");
 const { payment } = require("./paymentController");
+const { request } = require("../app");
 
 const createRentRequest = async (req, res, next) => {
     try {
@@ -177,6 +178,9 @@ const allRentRequest = async (req, res, next) => {
             .populate('hostId', '')
             .sort({ createdAt: -1 });
         const count = await Rent.countDocuments(filter);
+
+        // const total = await Rent.countDocuments({ requestStatus: "Completed" });
+        // console.log("Total Completre", total)
 
         const user = await User.findById(req.body.userId);
 
@@ -453,11 +457,12 @@ const startTrip = async (req, res, next) => {
             });
         }
 
-        console.log(kycFileNames)
+        // console.log(kycFileNames)
 
         const user = await User.findById(req.body.userId);
+        console.log("Dog User", user._id)
         const rent = await Rent.findOne({ _id: requestId });
-        console.log(rent)
+        // console.log(rent)
 
         if (!rent) {
             return res.status(404).json({ message: 'Rent request not found' });
@@ -492,7 +497,20 @@ const startTrip = async (req, res, next) => {
         if (tripStatus === "End") {
             rent.requestStatus = 'Completed'; // Use the assignment operator (=) here
             await rent.save();
+
+            if (user._id.toString() === req.body.userId.toString()) {
+                const tripCompleted = await Rent.countDocuments({ userId: user._id, requestStatus: "Completed" });
+                console.log("Total Completre", tripCompleted)
+                user.tripCompleted = tripCompleted;
+                await user.save();
+            }
+
+
         }
+
+        // const total = await Rent.countDocuments({ requestStatus: "Completed" });
+        // console.log("Total Completre", total)
+        // await user.save()
 
 
 

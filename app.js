@@ -38,6 +38,28 @@ app.use(cors(
   // }
 ));
 
+
+//initilizing socketIO
+const http = require('http');
+const socketIo = require('socket.io');
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*"
+  }
+});
+
+const socketIO = require("./helpers/socketIO");
+socketIO(io);
+
+global.io = io
+
+const socketIOPort = process.env.SOCKET_IO_PORT
+server.listen(socketIOPort, () => {
+  console.log(`Server is listening on port: ${socketIOPort}`);
+});
+
+
 // Routes
 app.use('/api/car', carRouter);
 app.use('/api/user', userRouter);
@@ -65,8 +87,9 @@ app.use((error, req, res, next) => {
 
   if (res.headersSent) {
     next('Something a problem');
-  } else if (err.message) {
-    return res.status(500).send(err.message)
+  } else if (error.message) {
+    console.error("Error", error.message);
+    return res.status(500).send(error.message)
   } else {
     return res.send('There was an error!')
   }

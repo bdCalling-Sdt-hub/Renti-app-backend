@@ -4,7 +4,7 @@ const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, a
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
-const configureFileUpload = require('../middleWares/fileUploads');
+const configureFileUpload = require('../middleWares/carfileUploads');
 
 const upload = configureFileUpload();
 
