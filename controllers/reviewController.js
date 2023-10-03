@@ -60,7 +60,7 @@ const createOrUpdate = async (req, res, next) => {
                 const review = await Review.create({
                     hostId: req.body.userId,
                     userId: rent.userId,
-                    // carId: rent.carId,
+                    carId: rent.carId,
                     reviewer: 'host',
                     rating: Number(rating),
                     comment: comment

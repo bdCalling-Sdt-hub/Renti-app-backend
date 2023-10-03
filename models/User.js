@@ -33,7 +33,8 @@ const userSchema = new mongoose.Schema({
   isBanned: { type: String, enum: ['true', 'false', 'trash'], default: 'false' },
   // isBlock: { type: Boolean, default: false },
   oneTimeCode: { type: String, required: false },
-  averageRatings: { type: Number, required: false }
+  averageRatings: { type: Number, required: false },
+  tripCompleted: { type: String, required: false }
 }, { timestamps: true }, {
   toJSON: {
     transform(doc, ret) {

@@ -30,6 +30,7 @@ const signUp = async (req, res, next) => {
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
         const kycFileNames = [];
+        console.log(req.files.KYC)
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
