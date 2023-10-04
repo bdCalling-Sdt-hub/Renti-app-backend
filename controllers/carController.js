@@ -70,8 +70,8 @@ const createCar = async (req, res, next) => {
                 type: 'admin'
             }
             const notification = await addNotification(newNotification)
-            // io.emit('admin-notification', notification);
-            io.emit('create', newNotification);
+            io.emit('admin-notification', notification);
+            // io.emit('create', newNotification);
 
             res.status(201).json({ message: 'Car created successfully', car });
         } else {

@@ -198,6 +198,7 @@ const signIn = async (req, res, next) => {
 
 
 
+        let activityId = null
         function extractDeviceModel(userAgent) {
             const regex = /\(([^)]+)\)/;
             const matches = userAgent.match(regex);
@@ -843,6 +844,7 @@ const updateUser = async (req, res, next) => {
             'address',
             'dateOfBirth',
             'RFC',
+            'bankAccountId',
             'creaditCardNumber',
             'ine',
         ];
