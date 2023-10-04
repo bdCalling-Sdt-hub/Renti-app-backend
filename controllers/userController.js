@@ -239,7 +239,7 @@ const signIn = async (req, res, next) => {
         const userAgent = req.get('user-agent');
         const browser = getBrowserInfo(userAgent);
 
-        const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '12h')
+        const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '24h')
 
 
         if (user.role === 'admin') {

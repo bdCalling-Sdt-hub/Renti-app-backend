@@ -9,7 +9,7 @@ const { addNotification } = require("./notificationController");
 //Add car
 const createCar = async (req, res, next) => {
     try {
-        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate } = req.body;
+        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate, specialCharacteristics } = req.body;
 
         // // Find the user
         const user = await User.findById(req.body.userId);
@@ -52,6 +52,7 @@ const createCar = async (req, res, next) => {
                 carColor,
                 carDoors,
                 carSeats,
+                specialCharacteristics,
                 totalRun,
                 hourlyRate,
                 offerHourlyRate,
