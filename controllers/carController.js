@@ -440,26 +440,85 @@ const allHostCars = async (req, res, next) => {
 };
 
 //Update car
+// const updateById = async (req, res, next) => {
+//     try {
+//         const { carModelName, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
+
+//         const kycFileNames = [];
+
+//         if (req.files && req.files.KYC) {
+//             req.files.KYC.forEach((file) => {
+//                 const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+//                 kycFileNames.push(publicFileUrl);
+//             });
+//         }
+
+//         const publicImageUrl = [];
+
+//         if (req.files && req.files.image) {
+//             req.files.image.forEach((file) => {
+//                 const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+//                 publicImageUrl.push(publicFileUrl);
+//             });
+//         }
+
+//         const car = await Car.findById(req.params.id);
+//         const user = await User.findById(req.body.userId);
+
+//         if (!user) {
+//             res.status(404).json({ message: "User not found" });
+//         }
+
+//         if (!car) {
+//             res.status(404).json({ message: "Car not found" });
+//         } else if (user._id.equals(car.carOwner)) {
+//             car.carModelName = carModelName;
+//             car.image = publicImageUrl;
+//             car.year = year;
+//             car.carLicenseNumber = carLicenseNumber
+//             car.carDescription = carDescription
+//             car.insuranceStartDate = insuranceStartDate
+//             car.insuranceEndDate = insuranceEndDate
+//             car.carLicenseImage = carLicenseImage;
+//             car.carColor = carColor;
+//             car.carDoors = carDoors
+//             car.carSeats = carSeats
+//             car.totalRun = totalRun;
+//             car.gearType = gearType;
+//             car.KYC = kycFileNames;
+
+//             await car.save();
+//             res.status(200).json({ message: 'Car updated successfully' });
+//         } else {
+//             res.status(401).json({ message: 'You are not authorize to update' })
+//         }
+
+//     } catch (err) {
+//         next(error)
+//     }
+// };
+
 const updateById = async (req, res, next) => {
     try {
         const { carModelName, year, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType } = req.body;
 
         const kycFileNames = [];
-
-        if (req.files && req.files.KYC) {
-            req.files.KYC.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
-                kycFileNames.push(publicFileUrl);
-            });
-        }
-
         const publicImageUrl = [];
 
-        if (req.files && req.files.image) {
-            req.files.image.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
-                publicImageUrl.push(publicFileUrl);
-            });
+        if (req.files) {
+            if (req.files.KYC) {
+                req.files.KYC.forEach((file) => {
+                    const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                    kycFileNames.push(publicFileUrl);
+                });
+            }
+
+            if (req.files.image) {
+                req.files.image.forEach((file) => {
+                    const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                    publicImageUrl.push(publicFileUrl);
+                });
+            }
         }
 
         const car = await Car.findById(req.params.id);
@@ -472,31 +531,31 @@ const updateById = async (req, res, next) => {
         if (!car) {
             res.status(404).json({ message: "Car not found" });
         } else if (user._id.equals(car.carOwner)) {
-            car.carModelName = carModelName;
-            car.image = publicImageUrl;
-            car.year = year;
-            car.carLicenseNumber = carLicenseNumber
-            car.carDescription = carDescription
-            car.insuranceStartDate = insuranceStartDate
-            car.insuranceEndDate = insuranceEndDate
-            car.carLicenseImage = carLicenseImage;
-            car.carColor = carColor;
-            car.carDoors = carDoors
-            car.carSeats = carSeats
-            car.totalRun = totalRun;
-            car.gearType = gearType;
-            car.KYC = kycFileNames;
+            if (carModelName) car.carModelName = carModelName;
+            if (publicImageUrl.length > 0) car.image = publicImageUrl;
+            if (year) car.year = year;
+            if (carLicenseNumber) car.carLicenseNumber = carLicenseNumber;
+            if (carDescription) car.carDescription = carDescription;
+            if (insuranceStartDate) car.insuranceStartDate = insuranceStartDate;
+            if (insuranceEndDate) car.insuranceEndDate = insuranceEndDate;
+            if (carLicenseImage) car.carLicenseImage = carLicenseImage;
+            if (carColor) car.carColor = carColor;
+            if (carDoors) car.carDoors = carDoors;
+            if (carSeats) car.carSeats = carSeats;
+            if (totalRun) car.totalRun = totalRun;
+            if (gearType) car.gearType = gearType;
+            if (kycFileNames.length > 0) car.KYC = kycFileNames;
 
             await car.save();
             res.status(200).json({ message: 'Car updated successfully' });
         } else {
-            res.status(401).json({ message: 'You are not authorize to update' })
+            res.status(401).json({ message: 'You are not authorized to update' });
         }
-
-    } catch (err) {
-        next(error)
+    } catch (error) {
+        next(error);
     }
 };
+
 
 
 // Delete car by owner
