@@ -14,6 +14,7 @@ const percentageRouter = require('./routes/percentageRouter');
 const hostPaymentTime = require('./routes/hostPaymentTime');
 const reviewRouter = require('./routes/reviewRouter');
 const cardRouter = require('./routes/cardRouter');
+const notificationRouter = require('./routes/notificationRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -76,6 +77,7 @@ app.use('/api/percentage', percentageRouter);
 app.use('/api/host-payment-time', hostPaymentTime);
 app.use('/api/review', reviewRouter);
 app.use('/api/card', cardRouter);
+app.use('/api/notifications', notificationRouter)
 
 app.use(express.static('public'));
 app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))

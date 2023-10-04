@@ -2,6 +2,7 @@
 const mongoose = require('mongoose')
 const Notification = require("../models/Notification");
 const Car = require('../models/Car');
+const User = require('../models/User');
 
 async function addNotification(data, type) {
   try {
@@ -52,6 +53,7 @@ const allNotifications = async (req, res) => {
   console.log('-----------------------------------------------called-----------------------------------------')
   try {
     const checkUser = await User.findById(req.body.userId);
+    console.log(checkUser)
     //extracting the notification id from param that is going to be edited
     if (!checkUser) {
       return res.status(404).json({ message: 'User not found' });
@@ -78,9 +80,11 @@ const allNotifications = async (req, res) => {
       },
     }
     io.emit('admin-notification', data)
+    // io.emit(data)
     return res.status(200).json(
       ({
-        message: 'Bookings retrieved successfully',
+        message: 'Car retrieved successfully',
+        data: data
       })
     );
   }
@@ -113,7 +117,7 @@ const getNotification = async (req, res) => {
       await notification.save()
     }
     const type = notification.type
-    const carDetails = await Car.findById(notification.linkId).populate('RentiId hostId userId')
+    const carDetails = await Car.findById(notification.linkId).populate('carOwner')
     //retriving all notifications
     const allNotification = await Notification.find({ type: type })
       .limit(limit)
@@ -134,7 +138,7 @@ const getNotification = async (req, res) => {
     }
     io.emit('admin-notification', data)
     console.log(data)
-    return res.status(200).json(({ status: 'OK', statusCode: '200', type: 'booking', message: 'Bookings retrieved successfully', data: carDetails }))
+    return res.status(200).json(({ status: 'OK', statusCode: '200', type: 'Car', message: 'Car retrieved successfully', data: carDetails }))
   }
   catch (error) {
     console.error(error);
@@ -148,5 +152,5 @@ const getNotification = async (req, res) => {
 
 module.exports = {
   addNotification,
-  // getNotification, allNotifications 
+  getNotification, allNotifications
 };
