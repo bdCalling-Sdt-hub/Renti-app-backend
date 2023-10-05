@@ -121,7 +121,14 @@ const verifyEmail = async (req, res, next) => {
             res.status(404).json({ message: 'User Not Found' });
         } else if (user.oneTimeCode === oneTimeCode) {
             user.emailVerified = true;
-            user.role = 'user';
+            if (user.role === 'host') {
+                user.role = 'host';
+            }
+
+            if (user.role === 'user') {
+                user.role = 'user';
+            }
+            // user.role = 'user';
             await user.save();
             res.status(200).json({ message: 'Email veriified successfully' });
         } else {
