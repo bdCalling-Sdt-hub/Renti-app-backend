@@ -5,9 +5,9 @@ const socketIO = (io) => {
   io.on('connection', (socket) => {
     console.log(`ID: ${socket.id} just connected`);
     socket.on('join-room', (data) => {
-      console.log(data);
+      console.log('someone wants to join--->', data);
       socket.join('room' + data.chatId);
-      socket.to('room' + data.chatId).emit('join-check', 'You are in room: ' + data.chatId);
+      socket.emit('join-check', 'You are in room: ' + data.chatId);
     });
 
     socket.on('my-room', (data) => {
