@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { createCarService, getCarsService, getById, update, remove, getsSearchByName } = require("../services/CarService");
 const User = require("../models/User");
 const Rent = require("../models/Rent");
-const { addNotification } = require("./notificationController");
+const { addNotification, getAllNotification } = require("./notificationController");
 
 
 //Add car
@@ -70,13 +70,14 @@ const createCar = async (req, res, next) => {
                 linkId: car._id,
                 type: 'admin'
             }
-            const notification = await addNotification(newNotification)
-            io.emit('admin-notification', notification);
+            await addNotification(newNotification)
+            const adminNotification = await getAllNotification('admin')
+            io.emit('admin-notification', adminNotification);
             // io.emit('create', newNotification);
 
             res.status(201).json({ message: 'Car created successfully', car });
         } else {
-            res.status(501).json({ message: "You are not authorized" });
+            res.status(401).json({ message: "You are not authorized" });
         }
 
     } catch (error) {

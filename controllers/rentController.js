@@ -4,7 +4,7 @@ const Car = require("../models/Car");
 const { updateById } = require("./carController");
 const Payment = require("../models/Payment");
 const { payment } = require("./paymentController");
-const { request } = require("../app");
+const { addNotification } = require("./notificationController");
 
 const createRentRequest = async (req, res, next) => {
     try {
@@ -78,6 +78,19 @@ const createRentRequest = async (req, res, next) => {
 
         car.popularity += 1;
         await car.save();
+
+
+        const message = user.fullName + ' wants to rent ' + car.carModelName
+        const newNotification = {
+            message: message,
+            receiverId: rents.hostId,
+            image: user.image,
+            linkId: rents._id,
+            type: 'host'
+        }
+        await addNotification(newNotification)
+        const notification = await getAllNotification('host', 6, 1, booking.hostId)
+        io.to('room' + booking.hostId).emit('host-notification', notification);
 
         res.status(200).json({ message: 'Rent request successful', rents });
     } catch (error) {
