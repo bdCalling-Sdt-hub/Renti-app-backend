@@ -337,27 +337,34 @@ const allUsers = async (req, res, next) => {
 // All Trush Users
 const allTrushUsers = async (req, res, next) => {
     try {
-        const page = req.query.page ? parseInt(req.query.page) : 1; // Get the page number from the query parameter, default to 1 if not provided
-        const limit = req.query.limit ? parseInt(req.query.limit) : 10; // Get the limit from the query parameter, default to 10 if not provided
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
 
         // Calculate the skip value based on the page number and limit
-        const skip = (page - 1) * limit;
+        // const skip = (page - 1) * limit;
 
         const trashUsers = await User.find({ isBanned: "trash" })
-            .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .skip((page - 1) * limit)
 
-        const count = await User.countDocuments(trashUsers);
+        const count = await User.countDocuments(User.find({ isBanned: "trash" }));
         console.log(count)
+        console.log(trashUsers.length)
 
         res.status(200).json({
             message: 'Trash User Retrieve Successfully',
             trashUsers,
             pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
                 currentPage: page,
-                totalPages: Math.ceil(count / limit), // Calculate total pages based on the result count and limit
-                totalUsers: trashUsers.length,
-                limit: limit
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                // totalDocuments: count,
+                // currentPage: page,
+                // totalPages: Math.ceil(count / limit), // Calculate total pages based on the result count and limit
+                // totalUsers: trashUsers.length,
+                // limit: limit
             }
 
         });
