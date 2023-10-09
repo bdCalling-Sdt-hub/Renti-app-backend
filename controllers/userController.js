@@ -1200,12 +1200,12 @@ const carSoftDeleteById = async (req, res, next) => {
             console.log("In")
             // If there are no associated rents, delete the user directly
 
-            // await car.deleteOne();
-            res.status(200).json({ message: 'Car deleted successfully' });
+            await car.deleteOne();
+            return res.status(200).json({ message: 'Car deleted successfully' });
         } else if (!paymentsToDelete || paymentsToDelete.length === "0") {
             console.log("In")
-            // await car.deleteOne();
-            res.status(200).json({ message: 'Car deleted successfully' });
+            await car.deleteOne();
+            return res.status(200).json({ message: 'Car deleted successfully' });
         }
         else {
             // If there are associated rents, delete the rents first
