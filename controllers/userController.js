@@ -1182,6 +1182,47 @@ const deleteById = async (req, res, next) => {
     }
 };
 
+const carSoftDeleteById = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const car = await Car.findById(id);
+        // console.log(car)
+
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        const rentsToDelete = await Rent.find({ carId: id });
+
+        const paymentsToDelete = await Payment.find({ carId: id });
+
+        if (!rentsToDelete || rentsToDelete.length === "0") {
+            console.log("In")
+            // If there are no associated rents, delete the user directly
+
+            // await car.deleteOne();
+            res.status(200).json({ message: 'Car deleted successfully' });
+        } else if (!paymentsToDelete || paymentsToDelete.length === "0") {
+            console.log("In")
+            // await car.deleteOne();
+            res.status(200).json({ message: 'Car deleted successfully' });
+        }
+        else {
+            // If there are associated rents, delete the rents first
+
+            // await Rent.deleteMany({ userId: id });
+            // await Payment.deleteMany({ userId: id });
+
+            // // After deleting rents, delete the user
+            // await car.deleteOne();
+
+            res.status(200).json({ message: 'You Can not delete this Car' });
+        }
+    } catch (err) {
+        next(err)
+    }
+};
+
 const logOut = async (req, res, next) => {
     try {
         const token = req.header('Authorization')
@@ -1198,5 +1239,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
+    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };
