@@ -334,6 +334,17 @@ const allUsers = async (req, res, next) => {
     }
 };
 
+// All Trush Users
+const allTrushUsers = async (req, res, next) => {
+    try {
+        const trashUsers = await User.find({ isBanned: "trash" });
+
+        res.status(200).json({ message: 'Trash User Retrieve Successfully', trashUsers });
+    } catch (error) {
+        next(error)
+    }
+}
+
 const getUserById = async (req, res, next) => {
     try {
 
@@ -1159,5 +1170,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, verifyEmail, signIn, allUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
+    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut
 };
