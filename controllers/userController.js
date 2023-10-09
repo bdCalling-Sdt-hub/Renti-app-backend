@@ -347,12 +347,15 @@ const allTrushUsers = async (req, res, next) => {
             .skip(skip)
             .limit(limit);
 
+        const count = await User.countDocuments(trashUsers);
+        console.log(count)
+
         res.status(200).json({
             message: 'Trash User Retrieve Successfully',
             trashUsers,
             pagination: {
                 currentPage: page,
-                totalPages: Math.ceil(trashUsers.length / limit), // Calculate total pages based on the result count and limit
+                totalPages: Math.ceil(count / limit), // Calculate total pages based on the result count and limit
                 totalUsers: trashUsers.length,
                 limit: limit
             }
