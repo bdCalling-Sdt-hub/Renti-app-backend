@@ -1196,14 +1196,14 @@ const carSoftDeleteById = async (req, res, next) => {
 
         const paymentsToDelete = await Payment.find({ carId: id });
 
-        if (!rentsToDelete || rentsToDelete.length === "0") {
-            console.log("In")
+        if (!rentsToDelete || rentsToDelete.length === 0) {
+            // console.log("In")
             // If there are no associated rents, delete the user directly
 
             await car.deleteOne();
             return res.status(200).json({ message: 'Car deleted successfully' });
         } else if (!paymentsToDelete || paymentsToDelete.length === "0") {
-            console.log("In")
+            // console.log("In")
             await car.deleteOne();
             return res.status(200).json({ message: 'Car deleted successfully' });
         }
