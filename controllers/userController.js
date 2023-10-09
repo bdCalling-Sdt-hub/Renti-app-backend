@@ -337,11 +337,29 @@ const allUsers = async (req, res, next) => {
 // All Trush Users
 const allTrushUsers = async (req, res, next) => {
     try {
-        const trashUsers = await User.find({ isBanned: "trash" });
+        const page = req.query.page ? parseInt(req.query.page) : 1; // Get the page number from the query parameter, default to 1 if not provided
+        const limit = req.query.limit ? parseInt(req.query.limit) : 10; // Get the limit from the query parameter, default to 10 if not provided
 
-        res.status(200).json({ message: 'Trash User Retrieve Successfully', trashUsers });
+        // Calculate the skip value based on the page number and limit
+        const skip = (page - 1) * limit;
+
+        const trashUsers = await User.find({ isBanned: "trash" })
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).json({
+            message: 'Trash User Retrieve Successfully',
+            trashUsers,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(trashUsers.length / limit), // Calculate total pages based on the result count and limit
+                totalUsers: trashUsers.length,
+                limit: limit
+            }
+
+        });
     } catch (error) {
-        next(error)
+        next(error);
     }
 }
 
