@@ -5,6 +5,7 @@ const User = require("../models/User");
 const allActivity = async (req, res) => {
   try {
     const checkUser = await User.findOne({ _id: req.body.userId });
+    console.log(checkUser)
     if (!checkUser) {
       return res.status(404).json(
         {
@@ -75,7 +76,7 @@ const deleteActivity = async (req, res) => {
     };
     if (checkUser.role !== 'admin') {
       return res.status(401).json(
-       {
+        {
           status: 'Error',
           statusCode: '401',
           message: 'You are not authorised to delete login activity',
