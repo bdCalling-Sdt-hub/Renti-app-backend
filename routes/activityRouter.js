@@ -1,6 +1,6 @@
 const express = require('express');
 const { isValidUser } = require('../middleWares/auth');
-const { allActivity, deleteActivity } = require('../controllers/activityContoller');
+const { deleteActivity, allActivity } = require('../controllers/activityContoller');
 const router = express.Router();
 
 
