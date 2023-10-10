@@ -1216,7 +1216,7 @@ const carSoftDeleteById = async (req, res, next) => {
             // // After deleting rents, delete the user
             // await car.deleteOne();
 
-            res.status(200).json({ message: 'You Can not delete this Car' });
+            res.status(409).json({ message: 'You Can not delete this Car' });
         }
     } catch (err) {
         next(err)
