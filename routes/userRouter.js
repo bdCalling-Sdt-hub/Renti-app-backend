@@ -17,7 +17,7 @@ router.post('/verify', verifyEmail);
 //Sign in
 router.post('/sign-in', signIn);
 
-router.get('/activity', isValidUser, userActivity);
+// router.get('/activity', isValidUser, userActivity);
 
 //All users
 router.get('/all', isValidUser, allUsers);

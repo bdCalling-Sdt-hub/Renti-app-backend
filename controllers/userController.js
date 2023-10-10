@@ -206,56 +206,54 @@ const signIn = async (req, res, next) => {
 
 
         let activityId = null
-        function extractDeviceModel(userAgent) {
-            const regex = /\(([^)]+)\)/;
-            const matches = userAgent.match(regex);
-
-            if (matches && matches.length >= 2) {
-                return matches[1];
-            } else {
-                return 'Unknown';
-            }
-        }
-
-        const userA = req.headers['user-agent'];
-
-        const deviceModel = extractDeviceModel(userA);
-
-
-        function getBrowserInfo(userAgent) {
-            const ua = userAgent.toLowerCase();
-
-            if (ua.includes('firefox')) {
-                return 'Firefox';
-            } else if (ua.includes('edg')) {
-                return 'Edge';
-            } else if (ua.includes('safari') && !ua.includes('chrome')) {
-                return 'Safari';
-            } else if (ua.includes('opr') || ua.includes('opera')) {
-                return 'Opera';
-            } else if (ua.includes('chrome')) {
-                return 'Chrome';
-            } else {
-                return 'Unknown';
-            }
-        }
-
-
-        const os = req.headers['user-agent'];
-        // const deviceNameOrModel = req.headers['user-agent'];
-        const userAgent = req.get('user-agent');
-        const browser = getBrowserInfo(userAgent);
-
-        const accessToken = createJSONWebToken({ _id: user._id, email: user.email }, process.env.JWT_SECRET_KEY, '24h')
-
-
         if (user.role === 'admin') {
+            function extractDeviceModel(userAgent) {
+                const regex = /\(([^)]+)\)/;
+                const matches = userAgent.match(regex);
+
+                if (matches && matches.length >= 2) {
+                    return matches[1];
+                } else {
+                    return 'Unknown';
+                }
+            }
+
+            const userA = req.headers['user-agent'];
+
+            const deviceModel = extractDeviceModel(userA);
+
+
+            function getBrowserInfo(userAgent) {
+                const ua = userAgent.toLowerCase();
+
+                if (ua.includes('firefox')) {
+                    return 'Firefox';
+                } else if (ua.includes('edg')) {
+                    return 'Edge';
+                } else if (ua.includes('safari') && !ua.includes('chrome')) {
+                    return 'Safari';
+                } else if (ua.includes('opr') || ua.includes('opera')) {
+                    return 'Opera';
+                } else if (ua.includes('chrome')) {
+                    return 'Chrome';
+                } else {
+                    return 'Unknown';
+                }
+            }
+            // const deviceNameOrModel = req.headers['user-agent'];
+            const userAgent = req.get('user-agent');
+            const browser = getBrowserInfo(userAgent);
             const activity = await Activity.create({
                 operatingSystem: deviceModel,
                 browser,
                 userId: user._id
             });
+            console.log(activity)
+            activityId = activity._id
         }
+
+        //Token, set the Cokkie
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
 
 
         //Success response
@@ -269,20 +267,20 @@ const signIn = async (req, res, next) => {
 };
 
 
-const userActivity = async (req, res, next) => {
-    try {
-        const activity = await Activity.find({});
-        const user = User.findById(req.body.userId);
-        if (user.role !== 'admin') {
-            res.status(200).json({ message: 'Activity of all users', activity });
-        } else {
-            res.status(401).json({ message: 'You are not authorized' });
-        }
+// const userActivity = async (req, res, next) => {
+//     try {
+//         const activity = await Activity.find({});
+//         const user = User.findById(req.body.userId);
+//         if (user.role !== 'admin') {
+//             res.status(200).json({ message: 'Activity of all users', activity });
+//         } else {
+//             res.status(401).json({ message: 'You are not authorized' });
+//         }
 
-    } catch (error) {
-        next(error)
-    }
-}
+//     } catch (error) {
+//         next(error)
+//     }
+// }
 
 
 //All users
@@ -1239,5 +1237,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
+    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };
