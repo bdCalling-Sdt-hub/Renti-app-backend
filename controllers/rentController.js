@@ -5,6 +5,7 @@ const { updateById } = require("./carController");
 const Payment = require("../models/Payment");
 const { payment } = require("./paymentController");
 const { addNotification, getAllNotification } = require("./notificationController");
+const generateCustomID = require("../helpers/generateCustomId");
 
 const createRentRequest = async (req, res, next) => {
     try {
@@ -41,31 +42,10 @@ const createRentRequest = async (req, res, next) => {
             return res.status(401).json({ message: "Invalid role" });
         }
 
-        function generateUniqueFourDigitNumber() {
-            const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-            // Shuffle the digits randomly
-            for (let i = digits.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [digits[i], digits[j]] = [digits[j], digits[i]];
-            }
-
-            // Take the first 4 digits and join them
-            const uniqueNumber = digits.slice(0, 4).join('');
-
-            return uniqueNumber;
-        }
-
-        // Generate a unique 4-digit number
-        const randomFourDigitNumber = generateUniqueFourDigitNumber();
-
-        // Combine the random number with the "RENT-" prefix
-        const rentTripNumber = `RENT-${randomFourDigitNumber}`;
-
         const carOwner = await User.findById(car.carOwner);
 
         const rents = await Rent.create({
-            rentTripNumber,
+            rentTripNumber: await generateCustomID(),
             totalAmount,
             totalHours,
             startDate,
@@ -96,8 +76,8 @@ const createRentRequest = async (req, res, next) => {
 
 
     } catch (error) {
-        // next(error)
-        console.log(error.message);
+        next(error)
+        // console.log(error.message);
     }
 };
 
