@@ -16,8 +16,6 @@ const createRentRequest = async (req, res, next) => {
 
         const user = await User.findById(req.body.userId);
         const car = await Car.findById(req.params.carId);
-        console.log("Car", car);
-        console.log("User", user);
 
         const hourlyRate = car.hourlyRate;
 
@@ -96,7 +94,7 @@ const userCancelRentRequest = async (req, res, next) => {
         }
 
 
-        rentRequest.sentRequest = 'Cancel';
+        rentRequest.requestStatus = 'Cancel';
         await rentRequest.save();
         return res.status(200).json({ message: 'Request Cancel' });
 
@@ -142,8 +140,6 @@ const acceptRentRequest = async (req, res, next) => {
             await rentRequest.save();
             return res.status(200).json({ message: 'Request Rejected' });
         }
-
-
 
     } catch (error) {
         next(error)

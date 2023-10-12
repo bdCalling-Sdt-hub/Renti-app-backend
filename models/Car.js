@@ -8,7 +8,6 @@ const carSchema = new mongoose.Schema({
     carDescription: { type: String, required: [true, 'Car Description is must be Required'] },
     insuranceStartDate: { type: String, required: [true, 'Start Date is must be Required'] },
     insuranceEndDate: { type: String, required: [true, 'End Date is must be Required'] },
-    // carLicenseImage: { type: Object, required: [true, 'Car License Image is must be Required'] },
     KYC: { type: Object, required: [true, 'Car License Image is must be Required'] },
     carColor: { type: String, required: false },
     carDoors: { type: String, required: false },
