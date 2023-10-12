@@ -84,6 +84,7 @@ const deleteActivity = async (req, res) => {
       );
     }
     const deleteActivity = await Activity.findOneAndDelete(id);
+    console.log(deleteActivity)
     return res.status(201).json({ status: 'Deleted', statusCode: '201', type: 'activity', message: 'Activity deleted successfully.', data: deleteActivity });
   }
   catch (error) {
