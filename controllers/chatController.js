@@ -4,11 +4,12 @@ exports.addChat = async (chatInfo) => {
   try {
     console.log(chatInfo.participants)
     const existingChat = await Chat.findOne({ participants: chatInfo.participants });
-
+    console.log(existingChat)
     if (existingChat) {
       return existingChat;
     } else {
       const newChat = await Chat.create({ participants: chatInfo.participants });
+      console.log(newChat)
       return newChat;
     }
   } catch (error) {
