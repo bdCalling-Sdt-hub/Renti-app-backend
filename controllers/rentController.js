@@ -30,7 +30,6 @@ const createRentRequest = async (req, res, next) => {
         console.log(`Total hours: ${totalHours} hours and ${totalMinutes} minutes`);
 
         const totalAmount = Number(hourlyRate) * totalHours
-        // console.log(totalAmount);
 
         if (!user) {
             return res.status(404).json({ message: 'You do not have permission to' });
@@ -57,9 +56,7 @@ const createRentRequest = async (req, res, next) => {
         car.popularity += 1;
         await car.save();
 
-        res.status(200).json({ message: 'Rent request successful', rents });
-
-
+        // Notification Start 
         const message = user.fullName + ' wants to rent ' + car.carModelName
         const newNotification = {
             message: message,
@@ -69,8 +66,13 @@ const createRentRequest = async (req, res, next) => {
             type: 'host'
         }
         await addNotification(newNotification)
-        const notification = await getAllNotification('host', 6, 1, booking.hostId)
-        io.to('room' + booking.hostId).emit('host-notification', notification);
+        const notification = await getAllNotification('host', 6, 1, rents.hostId)
+        io.to('room' + rents.hostId).emit('host-notification', notification);
+        // Notification End
+
+
+        res.status(200).json({ message: 'Rent request successful', rents });
+
 
 
     } catch (error) {

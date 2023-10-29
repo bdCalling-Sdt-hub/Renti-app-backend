@@ -32,12 +32,14 @@ const socketIO = (io) => {
       console.log('--------> all chats', allMessages)
       socket.to('room' + message.chat).emit('all-messages', allMessages)
     })
+
     socket.on('add-new-message', async (data) => {
       const message = await addMessage(data)
       console.log('--------> new message to be added', message)
       const allMessages = await getMessageByChatId(message.chat)
       socket.to('room' + message.chat).emit('all-messages', allMessages)
     })
+    
     socket.on('get-all-chats', async (data) => {
       const allChats = await getChatByParticipantId(data)
       //console.log('hitting from socket -------->', allChats)
