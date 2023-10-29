@@ -4,6 +4,7 @@ const Message = require('../models/Message');
 exports.addMessage = async (messageInfo) => {
   console.log('------------add message hitted----------')
   try {
+    console.log('message-info----->', messageInfo)
     const newMessage = new Message(messageInfo);
     await newMessage.save();
     return newMessage;
@@ -24,7 +25,7 @@ exports.getById = async (id) => {
 };
 exports.getMessageByChatId = async (id) => {
   try {
-    const message = await Message.find({chat: id}).populate('sender');
+    const message = await Message.find({ chat: id }).populate('sender');
     console.log(id, message)
     return message;
   } catch (err) {
@@ -32,7 +33,7 @@ exports.getMessageByChatId = async (id) => {
     return null;
   }
 };
-exports.updateMessageById = async  (id, document, options) =>{
+exports.updateMessageById = async (id, document, options) => {
   try {
     const message = await Message.findByIdAndUpdate(id, document, options)
     return message
@@ -40,7 +41,7 @@ exports.updateMessageById = async  (id, document, options) =>{
     console.log(error)
   }
 }
-exports.deleteMessageById = async (id) =>{
+exports.deleteMessageById = async (id) => {
   try {
     const message = await Message.findByIdAndDelete(id)
     console.log(message)
