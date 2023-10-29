@@ -146,7 +146,7 @@ const allNotifications = async (req, res) => {
 };
 
 const getNotificationDetails = async (req, res) => {
-  console.log(req.body)
+  console.log("Hello", req.body)
   try {
     const checkUser = await User.findById(req.body.userId);
     //extracting the notification id from param that is going to be edited

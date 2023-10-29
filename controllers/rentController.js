@@ -572,6 +572,7 @@ const deleteRentById = async (req, res, next) => {
 };
 
 const startTrip = async (req, res, next) => {
+    console.log('called')
     const requestId = req.params.requestId;
     try {
 

@@ -1,4 +1,5 @@
 const Chat = require("../models/Chat");
+const Message = require("../models/Message");
 
 exports.addChat = async (chatInfo) => {
   try {
@@ -36,13 +37,26 @@ exports.getChatByParticipantId = async (id) => {
   try {
     const chat = await Chat.find({ participants: id })
       .populate('participants')
-    console.log(id, chat)
+    console.log("All Check List------>", id, chat)
     if (chat.length > 0) {
       return chat;
     }
     else {
       return null;
     }
+    // const chat = await Chat.find({ participants: id }).populate('participants');
+    // console.log(id, chat);
+    // var data = [];
+    // if (chat.length > 0) {
+    //   for (const chatItem of chat) {
+    //     const chatId = chatItem._id;
+    //     const messages = await Message.find({ chat: chatId }).populate('message').sort({ createdAt: -1 }).limit(1);
+    //     data.push({ chat: chatItem, message: messages });
+    //   }
+    //   return data;
+    // } else {
+    //   return data;
+    // }
   } catch (err) {
     console.error(err);
     return null;
