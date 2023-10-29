@@ -10,15 +10,146 @@ const Activity = require("../models/Activity");
 const Rent = require("../models/Rent");
 const Card = require("../models/Card");
 const Review = require("../models/Review");
+const stripe = require('stripe')('sk_test_51M6KI7Jb9nyriLWoahD6dzwy06PfzLdDBt72MjJv1quIUgJXRQXAhI7bfH617cUKES7G5eQpCBnKV6KooQwrda5c00oLKLZP0w');
+const fs = require('fs');
 
 
 // Define a map to store user timers for sign up requests
 const userTimers = new Map();
 
 
+// const signUp = async (req, res, next) => {
+//     try {
+//         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
+
+//         // Check if the user already exists
+//         const userExist = await User.findOne({ email });
+//         if (userExist) {
+//             return res.status(409).json({ message: 'User already exists! Please login' });
+//         }
+
+//         // Generate OTC (One-Time Code)
+//         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+//         const kycFileNames = [];
+//         console.log(req.files.KYC)
+
+//         if (req.files && req.files.KYC) {
+//             req.files.KYC.forEach((file) => {
+//                 // Add public/uploads link to each KYC file
+//                 const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+//                 kycFileNames.push(kycLink);
+//             });
+//         }
+
+//         let imageFileName = '';
+
+
+//         // Check if req.files.image exists and is an array
+//         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
+//             // Add public/uploads link to the image file
+//             imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+//         }
+
+//         // Create the user in the database
+//         const user = await User.create({
+//             fullName,
+//             email,
+//             phoneNumber,
+//             gender,
+//             address,
+//             dateOfBirth,
+//             password,
+//             image: imageFileName,
+//             KYC: kycFileNames,
+//             RFC,
+//             creaditCardNumber,
+//             ine,
+//             oneTimeCode,
+//             role
+//         });
+
+//         // Clear any previous timer for the user (if exists)
+//         if (userTimers.has(user._id)) {
+//             clearTimeout(userTimers.get(user._id));
+//         }
+
+//         // Set a new timer for the user to reset oneTimeCode after 3 minutes
+//         const userTimer = setTimeout(async () => {
+//             try {
+//                 user.oneTimeCode = null;
+//                 await user.save();
+//                 console.log(`oneTimeCode for user ${user._id} reset to null after 3 minutes`);
+//                 // Remove the timer reference from the map
+//                 userTimers.delete(user._id);
+//             } catch (error) {
+//                 console.error(`Error updating oneTimeCode for user ${user._id}:`, error);
+//             }
+//         }, 180000); // 3 minutes in milliseconds
+
+//         // Store the timer reference in the map
+//         userTimers.set(user._id, userTimer);
+
+//         // Prepare email for activate user
+//         const emailData = {
+//             email,
+//             subject: 'Account Activation Email',
+//             html: `
+//           <h1>Hello, ${user.fullName}</h1>
+//           <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
+//           <small>This Code is valid for 3 minutes</small>
+//           `
+//         }
+
+//         const stripeConnectAccount = await stripe.accounts.create({
+//             type: 'express',
+//             country: 'US', // Replace with the appropriate country code
+//             email: email, // Use the user's email as the Stripe account email
+//         });
+
+//         console.log("stripeConnectAccount", stripeConnectAccount)
+
+//         // Associate the Stripe Connect account ID with your user
+//         user.stripeConnectAccountId = stripeConnectAccount.id;
+//         await user.save();
+
+//         try {
+//             emailWithNodemailer(emailData);
+//             console.log(emailData)
+//             return res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
+//         } catch (emailError) {
+//             console.error('Failed to send verification email', emailError);
+//         }
+//     } catch (error) {
+//         next(error);
+//         // return res.status(500).json({ message: 'Error creating user', error });
+//     }
+// };
+
+//Verify email
+
 const signUp = async (req, res, next) => {
+    // const bankInfo = JSON.parse(req.body.bankInfo)
+    // const address = JSON.parse(req.body.address)
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
+        const {
+            fullName,
+            email,
+            phoneNumber, // Add phoneNumber to the request body
+            gender,
+            address,
+            dateOfBirth,
+            password,
+            KYC,
+            RFC,
+            creditCardNumber, // Correct the variable name to creditCardNumber
+            ine,
+            image,
+            bankInfo,
+            role,
+        } = req.body;
+
+        console.log(req.body.address)
 
         // Check if the user already exists
         const userExist = await User.findOne({ email });
@@ -30,7 +161,7 @@ const signUp = async (req, res, next) => {
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
         const kycFileNames = [];
-        console.log(req.files.KYC)
+
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
@@ -40,20 +171,19 @@ const signUp = async (req, res, next) => {
             });
         }
 
-        let imageFileName = '';
-
+        console.log("Kyc", req.files.KYC[0].path);
 
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
             imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
         }
-
+        // console.log(imageFileName)
         // Create the user in the database
         const user = await User.create({
             fullName,
             email,
-            phoneNumber,
+            phoneNumber, // Include phoneNumber
             gender,
             address,
             dateOfBirth,
@@ -61,10 +191,11 @@ const signUp = async (req, res, next) => {
             image: imageFileName,
             KYC: kycFileNames,
             RFC,
-            creaditCardNumber,
+            creditCardNumber, // Corrected variable name
             ine,
             oneTimeCode,
-            role
+            role,
+            bankInfo
         });
 
         // Clear any previous timer for the user (if exists)
@@ -96,12 +227,145 @@ const signUp = async (req, res, next) => {
           <h1>Hello, ${user.fullName}</h1>
           <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
           <small>This Code is valid for 3 minutes</small>
-          `
-        }
+          `,
+        };
+
+
+        const dateComponents = dateOfBirth.split("/");
+
+        const day = parseInt(dateComponents[0]);
+        const month = parseInt(dateComponents[1]);
+        const year = parseInt(dateComponents[2]);
+
+        const fileUpload = await stripe.files.create({
+            purpose: 'identity_document',
+            file: {
+                data: fs.readFileSync(req.files.KYC[0].path),
+                name: req.files.KYC[0].filename, // Replace with the actual file name
+                type: req.files.KYC[0].mimetype, // Replace with the actual file type
+            },
+        });
+
+        const backFileUpload = await stripe.files.create({
+            purpose: 'identity_document',
+            file: {
+                data: fs.readFileSync(req.files.KYC[0].path),
+                name: req.files.KYC[0].filename, // Replace with the actual file name
+                type: req.files.KYC[0].mimetype, // Replace with the actual file type
+            },
+        });
+
+        // Get the file IDs from the uploads
+        const frontFileId = fileUpload.id;
+        const backFileId = backFileUpload.id;
+
+
+        console.log(frontFileId, backFileId)
+
+
+        const account = await stripe.accounts.create({
+            country: 'MX',
+            type: 'custom',
+            business_type: 'individual',
+            email: email,
+            // external_account: 'btok_1O4dT0Jb9nyriLWow9TwyDTZ',
+            tos_acceptance: {
+                service_agreement: 'recipient',
+                ip: req.ip,
+                date: Math.floor(new Date().getTime() / 1000)
+            },
+            business_profile: {
+                mcc: '7512',
+                name: fullName,
+                product_description: 'Your business description',
+                support_address: {
+                    city: 'Mexico City',
+                    country: 'MX',
+                    line1: 'Mexico',
+                    line2: 'Mexico',
+                    postal_code: '22056',
+                    state: 'Aguascalientes',
+                },
+            },
+            company: {
+                address: {
+                    city: 'Mexico',
+                    country: 'MX',
+                    line1: 'Mexico',
+                    line2: 'Mexico',
+                    postal_code: '22056',
+                    state: 'Aguascalientes',
+                },
+            },
+            individual: {
+                dob: {
+                    day: day,
+                    month: month,
+                    year: year,
+                },
+                email: email,
+                first_name: fullName,
+                last_name: ' ',
+                id_number: ine,
+                phone: phoneNumber,
+                address: {
+                    city: req.body.address.city,
+                    country: req.body.address.country,
+                    line1: req.body.address.line1,
+                    postal_code: req.body.address.postal_code,
+                    state: req.body.address.state,
+                },
+                verification: {
+                    document: {
+                        front: frontFileId, // Replace with the actual file path
+                        back: backFileId, // Replace with the actual file path
+                    },
+                },
+            },
+            // settings: {
+            //     branding: {
+            //         primary_color: '#000000',
+            //         secondary_color: '#ffffff',
+            //         logo: frontFileId, // Replace with the URL to your business logo
+            //         icon: frontFileId, // Replace with the URL to your business icon
+            //     },
+            // },
+            capabilities: {
+                transfers: {
+                    requested: true,
+                },
+            },
+            external_account: {
+                object: 'bank_account',
+                country: 'MX',
+                currency: 'mxn',
+                account_holder_name: req.body.bankInfo.account_holder_name,
+                account_holder_type: req.body.bankInfo.account_holder_type,
+                account_number: req.body.bankInfo.account_number,
+            },
+        });
+
+
+        console.log('stripeConnectAccount', account.id);
+        user.stripeConnectAccountId = account.id;
+        await user.save();
+
+        const accountLink = await stripe.accountLinks.create({
+            account: account.id,
+            refresh_url: 'https://example.com/reauth',
+            return_url: 'https://example.com/return',
+            type: 'account_onboarding',
+            collect: 'eventually_due'
+        });
+
+
+        console.log('accountLink', accountLink);
+
+
 
         try {
             emailWithNodemailer(emailData);
-            console.log(emailData)
+            console.log(emailData);
             return res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
         } catch (emailError) {
             console.error('Failed to send verification email', emailError);
@@ -112,7 +376,7 @@ const signUp = async (req, res, next) => {
     }
 };
 
-//Verify email
+
 const verifyEmail = async (req, res, next) => {
     try {
         const { oneTimeCode, email } = req.body;

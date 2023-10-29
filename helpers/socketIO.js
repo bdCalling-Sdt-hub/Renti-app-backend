@@ -22,6 +22,7 @@ const socketIO = (io) => {
       const allChats = await getMessageByChatId(data.uid)
       io.to("room" + data.uid).emit('all-messages', allChats)
     })
+
     socket.on('add-new-message', async (data) => {
       console.log("message info------->", data)
       const message = await addMessage(data)
@@ -30,6 +31,7 @@ const socketIO = (io) => {
       console.log('all messages list----> ', allMessages)
       io.to('room' + message.chat).emit('all-messages', allMessages)
     })
+    
     socket.on('get-all-chats', async (data) => {
       const allChats = await getChatByParticipantId(data.uid)
       socket.join('room' + data.uid)
