@@ -18,115 +18,105 @@ const fs = require('fs');
 const userTimers = new Map();
 
 
-// const signUp = async (req, res, next) => {
-//     try {
-//         const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
+const userSignUp = async (req, res, next) => {
+    try {
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
 
-//         // Check if the user already exists
-//         const userExist = await User.findOne({ email });
-//         if (userExist) {
-//             return res.status(409).json({ message: 'User already exists! Please login' });
-//         }
+        console.log(req.body);
 
-//         // Generate OTC (One-Time Code)
-//         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+        // Check if the user already exists
+        const userExist = await User.findOne({ email });
+        if (userExist) {
+            return res.status(409).json({ message: 'User already exists! Please login' });
+        }
 
-//         const kycFileNames = [];
-//         console.log(req.files.KYC)
+        // Generate OTC (One-Time Code)
+        const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
-//         if (req.files && req.files.KYC) {
-//             req.files.KYC.forEach((file) => {
-//                 // Add public/uploads link to each KYC file
-//                 const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
-//                 kycFileNames.push(kycLink);
-//             });
-//         }
+        const kycFileNames = [];
+        console.log(req.files.KYC)
 
-//         let imageFileName = '';
+        if (req.files && req.files.KYC) {
+            req.files.KYC.forEach((file) => {
+                // Add public/uploads link to each KYC file
+                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                kycFileNames.push(kycLink);
+            });
+        }
+
+        let imageFileName = '';
 
 
-//         // Check if req.files.image exists and is an array
-//         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
-//             // Add public/uploads link to the image file
-//             imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
-//         }
+        // Check if req.files.image exists and is an array
+        if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
+            // Add public/uploads link to the image file
+            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+        }
 
-//         // Create the user in the database
-//         const user = await User.create({
-//             fullName,
-//             email,
-//             phoneNumber,
-//             gender,
-//             address,
-//             dateOfBirth,
-//             password,
-//             image: imageFileName,
-//             KYC: kycFileNames,
-//             RFC,
-//             creaditCardNumber,
-//             ine,
-//             oneTimeCode,
-//             role
-//         });
+        // Create the user in the database
+        const user = await User.create({
+            fullName,
+            email,
+            phoneNumber,
+            gender,
+            address,
+            dateOfBirth,
+            password,
+            image: imageFileName,
+            KYC: kycFileNames,
+            RFC,
+            creaditCardNumber,
+            ine,
+            oneTimeCode,
+            role
+        });
 
-//         // Clear any previous timer for the user (if exists)
-//         if (userTimers.has(user._id)) {
-//             clearTimeout(userTimers.get(user._id));
-//         }
+        // Clear any previous timer for the user (if exists)
+        if (userTimers.has(user._id)) {
+            clearTimeout(userTimers.get(user._id));
+        }
 
-//         // Set a new timer for the user to reset oneTimeCode after 3 minutes
-//         const userTimer = setTimeout(async () => {
-//             try {
-//                 user.oneTimeCode = null;
-//                 await user.save();
-//                 console.log(`oneTimeCode for user ${user._id} reset to null after 3 minutes`);
-//                 // Remove the timer reference from the map
-//                 userTimers.delete(user._id);
-//             } catch (error) {
-//                 console.error(`Error updating oneTimeCode for user ${user._id}:`, error);
-//             }
-//         }, 180000); // 3 minutes in milliseconds
+        // Set a new timer for the user to reset oneTimeCode after 3 minutes
+        const userTimer = setTimeout(async () => {
+            try {
+                user.oneTimeCode = null;
+                await user.save();
+                console.log(`oneTimeCode for user ${user._id} reset to null after 3 minutes`);
+                // Remove the timer reference from the map
+                userTimers.delete(user._id);
+            } catch (error) {
+                console.error(`Error updating oneTimeCode for user ${user._id}:`, error);
+            }
+        }, 180000); // 3 minutes in milliseconds
 
-//         // Store the timer reference in the map
-//         userTimers.set(user._id, userTimer);
+        // Store the timer reference in the map
+        userTimers.set(user._id, userTimer);
 
-//         // Prepare email for activate user
-//         const emailData = {
-//             email,
-//             subject: 'Account Activation Email',
-//             html: `
-//           <h1>Hello, ${user.fullName}</h1>
-//           <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
-//           <small>This Code is valid for 3 minutes</small>
-//           `
-//         }
+        // Prepare email for activate user
+        const emailData = {
+            email,
+            subject: 'Account Activation Email',
+            html: `
+          <h1>Hello, ${user.fullName}</h1>
+          <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
+          <small>This Code is valid for 3 minutes</small>
+          `
+        }
 
-//         const stripeConnectAccount = await stripe.accounts.create({
-//             type: 'express',
-//             country: 'US', // Replace with the appropriate country code
-//             email: email, // Use the user's email as the Stripe account email
-//         });
+        try {
+            emailWithNodemailer(emailData);
+            console.log(emailData)
+            return res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
+        } catch (emailError) {
+            console.error('Failed to send verification email', emailError);
+        }
+    } catch (error) {
+        next(error);
+        // return res.status(500).json({ message: 'Error creating user', error });
+    }
+};
 
-//         console.log("stripeConnectAccount", stripeConnectAccount)
 
-//         // Associate the Stripe Connect account ID with your user
-//         user.stripeConnectAccountId = stripeConnectAccount.id;
-//         await user.save();
-
-//         try {
-//             emailWithNodemailer(emailData);
-//             console.log(emailData)
-//             return res.status(201).json({ message: 'Thanks! Please check your E-mail to verify.' });
-//         } catch (emailError) {
-//             console.error('Failed to send verification email', emailError);
-//         }
-//     } catch (error) {
-//         next(error);
-//         // return res.status(500).json({ message: 'Error creating user', error });
-//     }
-// };
-
-//Verify email
 
 const signUp = async (req, res, next) => {
     // const bankInfo = JSON.parse(req.body.bankInfo)
@@ -376,7 +366,7 @@ const signUp = async (req, res, next) => {
     }
 };
 
-
+// Verify email
 const verifyEmail = async (req, res, next) => {
     try {
         const { oneTimeCode, email } = req.body;
@@ -1501,5 +1491,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
+    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };
