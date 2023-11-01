@@ -137,11 +137,14 @@ const payment = async (req, res, next) => {
             },
         });
 
+        console.log("paymentData", paymentData)
+
         const transferAmount = (product.price * 100 * 0.75);
 
         const transfer = await stripe.transfers.create({
             amount: transferAmount,
             currency: 'usd',
+            source_transaction: paymentData.id,
             destination: stripeConnectAccountID,
             transfer_group: 'ORDER10',
         });

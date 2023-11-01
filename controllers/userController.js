@@ -433,6 +433,8 @@ const verifyEmail = async (req, res, next) => {
 //         res.status(500).json({ message: 'Error signing in', error });
 //     }
 // };
+
+
 const signIn = async (req, res, next) => {
     try {
         // Get email and password from req.body
@@ -1351,7 +1353,7 @@ const forgetPassword = async (req, res, next) => {
 //Verify one time code
 const verifyOneTimeCode = async (req, res, next) => {
     try {
-        const { email } = req.headers;
+        const { email } = req.body;
         const { oneTimeCode } = req.body;
         console.log(req.body.oneTimeCode);
         console.log(email);
