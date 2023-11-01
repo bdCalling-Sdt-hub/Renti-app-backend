@@ -1373,7 +1373,7 @@ const verifyOneTimeCode = async (req, res, next) => {
 //Update password without login
 const updatePassword = async (req, res, next) => {
     try {
-        const { email } = req.headers;
+        const { email } = req.body;
         console.log(req.body.password);
         console.log(email);
         const user = await User.findOne({ email });
