@@ -171,7 +171,7 @@ const hostPaymentList = async (req, res, next) => {
                 if (user) {
                     if (rent) {
                         hostPaymentList.push({
-                            status: payment.payout,
+                            status: payment?.paymentData?.status,
                             carOwner: user,
                             time: payment.createdAt,
                             originalAmount: payment.paymentData.amount,
