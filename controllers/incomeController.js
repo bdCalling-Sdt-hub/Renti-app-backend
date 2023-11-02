@@ -408,7 +408,7 @@ const rentiPaymentList = async (req, res, next) => {
             return res.status(401).json({ message: 'You are not Authorized' });
         }
 
-        const payoutAmounts = await Payment.find({ payout: true }).select('paymentData.amount'); // Total Payment
+        const payoutAmounts = await Payment.find({}).select('paymentData.amount'); // Total Payment
         const totalPayoutAmounts = payoutAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
 
         const percentages = await Percentage.find({});
