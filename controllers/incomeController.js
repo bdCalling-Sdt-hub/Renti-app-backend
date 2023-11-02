@@ -285,7 +285,7 @@ const userPaymentList = async (req, res, next) => {
                         car,
                         amount: payment.paymentData.amount,
                         time: payment.createdAt,
-                        method: payment.paymentData.source.brand,
+                        method: payment.paymentData?.source?.brand,
                         rentTripNumbers: rent.rentTripNumber, // Assuming tripNumber is a field in Rent
                         rentInfo: rent,
                         hostInfo: await Rent.populate(rent, { path: 'hostId' }),
@@ -295,7 +295,7 @@ const userPaymentList = async (req, res, next) => {
             }
         }
 
-        console.log(userPaymentList.length);
+        console.log("User Payment List", userPaymentList.length);
 
         res.status(200).json({
             message: "Payment Retrieved Successfully",
