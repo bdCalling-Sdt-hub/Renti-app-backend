@@ -27,8 +27,8 @@ const hostPayment = async (req, res, next) => {
         }
 
         const totalPaymentUser = await Payment.find({}).select('paymentData.amount');
-        const paymentAmounts = await Payment.find({ payout: false }).select('paymentData.amount');  //Total Pending
-        const payoutAmounts = await Payment.find({ payout: true }).select('paymentData.amount');   //Total Payment
+        const paymentAmounts = await Payment.find({}).select('paymentData.amount');  //Total Pending
+        const payoutAmounts = await Payment.find({}).select('paymentData.amount');   //Total Payment
 
 
         const totalPayment = totalPaymentUser.reduce((acc, payment) => acc + payment.paymentData.amount, 0); //Total
@@ -43,9 +43,13 @@ const hostPayment = async (req, res, next) => {
         const numberPercentages = Number(contentNumbers)
 
         const rentiTotal = (totalPayoutAmounts / 100) * numberPercentages;
-        console.log(rentiTotal)
+        console.log("rentiTotal", rentiTotal)
+
+        const hostPanding = totalPaymentAmounts - rentiTotal;
+        console.log("hostPanding", hostPanding)
+
         const hostPayment = totalPayoutAmounts - rentiTotal;
-        console.log("ggg", hostPayment)
+        console.log("hostPayment", hostPayment)
 
         let hostTotalPercentage = (totalPayoutAmounts / totalPayment) * 100;
         console.log("hostTotalPercentage", hostTotalPercentage)
@@ -54,7 +58,7 @@ const hostPayment = async (req, res, next) => {
         console.log("hostPendingPercentage", hostPendingPercentage)
 
         const income = await Income.create({
-            hostTotalPending: totalPaymentAmounts,
+            hostTotalPending: hostPanding,
             hostTotalPayment: hostPayment,
             hostTotalPercentage,
             hostPendingPercentage
@@ -135,6 +139,7 @@ const hostPaymentList = async (req, res, next) => {
         const limit = Number(req.query.limit) || 5;
 
         const payments = await Payment.find({}); // Fetch all payments
+        // console.log("P", payments?.paymentData?.status)
 
         if (!payments || payments.length === 0) {
             return res.status(404).json({ message: 'Payment not found' });
@@ -154,7 +159,7 @@ const hostPaymentList = async (req, res, next) => {
         const percentages = await Percentage.find({});
         const contentNumbers = percentages.map(item => item.content);
         const numberPercentages = Number(contentNumbers);
-        console.log(numberPercentages)
+        // console.log(numberPercentages)
 
         // Calculate 25% of the totalPayment
         const twentyFivePercent = totalPayment * numberPercentages;
@@ -187,7 +192,7 @@ const hostPaymentList = async (req, res, next) => {
         }
 
         const filteredUserPaymentList = hostPaymentList.filter(payment => payment.rentTripNumber == req.query.search || payment.carOwner == req.query.search || payment.email == req.query.search || payment.phoneNumber == req.query.search);
-        console.log(filteredUserPaymentList)
+        // console.log(filteredUserPaymentList)
 
 
         let startIndex;
@@ -266,8 +271,8 @@ const userPaymentList = async (req, res, next) => {
                 const user = await User.findOne({ _id: userId });
 
                 // Log relevant variables for debugging
-                console.log('userId:', userId);
-                console.log('rent.status:', rent.status);
+                // console.log('userId:', userId);
+                // console.log('rent.status:', rent.status);
 
                 // Assuming your User collection has _id field and Car has carOwner field
                 if (user) {
@@ -295,7 +300,7 @@ const userPaymentList = async (req, res, next) => {
             }
         }
 
-        console.log("User Payment List", userPaymentList.length);
+        // console.log("User Payment List", userPaymentList.length);
 
         res.status(200).json({
             message: "Payment Retrieved Successfully",
