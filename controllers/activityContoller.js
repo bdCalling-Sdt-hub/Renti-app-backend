@@ -71,6 +71,7 @@ const deleteActivity = async (req, res) => {
     const checkUser = await User.findById(req.body.userId);
     //extracting the deleteActivity id from param that is going to be deleted
     const id = req.params.id
+    console.log(id)
     if (!checkUser) {
       return res.status(404).json({ status: 'Error', statusCode: '404', message: 'User not found' });
     };
@@ -83,7 +84,7 @@ const deleteActivity = async (req, res) => {
         }
       );
     }
-    const deleteActivity = await Activity.findOneAndDelete(id);
+    const deleteActivity = await Activity.findByIdAndDelete(id);
     console.log(deleteActivity)
     return res.status(201).json({ status: 'Deleted', statusCode: '201', type: 'activity', message: 'Activity deleted successfully.', data: deleteActivity });
   }
