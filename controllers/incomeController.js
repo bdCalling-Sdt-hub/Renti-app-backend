@@ -281,7 +281,7 @@ const userPaymentList = async (req, res, next) => {
 
                     userPaymentList.push({
                         status: payment.paymentData.paid,
-                        carOwner: user,
+                        userInfo: user,
                         car,
                         amount: payment.paymentData.amount,
                         time: payment.createdAt,
