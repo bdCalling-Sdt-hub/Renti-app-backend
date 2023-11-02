@@ -171,8 +171,13 @@ const hostPaymentList = async (req, res, next) => {
             const car = await Car.findOne({ _id: carId }); // Assuming your Car collection has _id field
             const rent = await Rent.findOne({ _id: payment.rentId }); // Assuming 'rentId' is a field in the Payment model
 
+            const carTotal = await Car.find({ carOwner: car?.carOwner });
+
+
+
             if (car) {
                 const user = await User.findOne({ _id: car.carOwner, role: 'host' });
+                // console.log("User", user)
                 if (user) {
                     if (rent) {
                         hostPaymentList.push({
@@ -183,6 +188,11 @@ const hostPaymentList = async (req, res, next) => {
                             paidAmount: payment.paymentData.amount - ((payment.paymentData.amount / 100 * numberPercentages)),
                             rentTripNumber: rent.rentTripNumber,
                             time: payment.createdAt,
+                            rentTotalHours: rent.totalHours,
+                            startDate: rent.startDate,
+                            endDate: rent.endDate,
+                            requestStatus: rent.requestStatus,
+                            carTotal: carTotal.length,
                             method: payment?.paymentData?.source?.brand,
                             _id: payment._id,
                         });
