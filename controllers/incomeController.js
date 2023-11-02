@@ -178,7 +178,7 @@ const hostPaymentList = async (req, res, next) => {
                             paidAmount: payment.paymentData.amount - ((payment.paymentData.amount / 100 * numberPercentages)),
                             rentTripNumber: rent.rentTripNumber,
                             time: payment.createdAt,
-                            method: payment.paymentData.source.brand,
+                            method: payment?.paymentData?.source?.brand,
                             _id: payment._id,
                         });
                     }

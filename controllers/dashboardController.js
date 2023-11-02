@@ -219,7 +219,7 @@ const hostPaymentList = async (req, res, next) => {
                         stripeFee: 0,
                         rentiFee: payment.paymentData.amount / 100 * numberPercentages,
                         time: payment.createdAt,
-                        method: payment.paymentData.source.brand,
+                        method: payment?.paymentData?.source?.brand,
                         rentTripNumbers: rent.rentTripNumber, // Assuming tripNumber is a field in Rent
                     });
                 }
