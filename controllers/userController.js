@@ -1364,6 +1364,8 @@ const verifyOneTimeCode = async (req, res, next) => {
         if (!user) {
             return res.status(40).json({ message: 'User not found' });
         } else if (user.oneTimeCode === oneTimeCode) {
+            user.emailVerified = true;
+            await user.save();
             res.status(200).json({ success: true, message: 'User verified successfully' });
         } else {
             res.status(400).json({ success: false, message: 'Failed to verify user' });
