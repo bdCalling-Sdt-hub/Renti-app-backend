@@ -119,8 +119,11 @@ const userSignUp = async (req, res, next) => {
 
 
 const signUp = async (req, res, next) => {
-    // const bankInfo = JSON.parse(req.body.bankInfo)
-    // const address = JSON.parse(req.body.address)
+    const bankInfo = JSON.parse(req.body.bankInfo)
+    const address = JSON.parse(req.body.address)
+
+    console.log(bankInfo)
+    console.log(address)
     try {
         const {
             fullName,
