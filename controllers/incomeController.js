@@ -138,7 +138,7 @@ const hostPaymentList = async (req, res, next) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 5;
 
-        const payments = await Payment.find({}).sort({ createdAt: -1 });; // Fetch all payments
+        const payments = await Payment.find({}).sort({ createdAt: -1 }); // Fetch all payments
         // console.log("P", payments?.paymentData?.status)
 
         if (!payments || payments.length === 0) {
@@ -393,7 +393,7 @@ const rentiPaymentList = async (req, res, next) => {
         const limit = Number(req.query.limit) || 10;
 
         const carInfo = await Car.find({});
-        const paymentList = await Payment.find({});
+        const paymentList = await Payment.find({}).sort({ createdAt: -1 });
 
         if (!paymentList || paymentList.length === 0) {
             return res.status(404).json({ message: 'Payment not found' });
