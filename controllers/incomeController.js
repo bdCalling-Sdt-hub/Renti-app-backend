@@ -138,7 +138,7 @@ const hostPaymentList = async (req, res, next) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 5;
 
-        const payments = await Payment.find({}); // Fetch all payments
+        const payments = await Payment.find({}).sort({ createdAt: -1 });; // Fetch all payments
         // console.log("P", payments?.paymentData?.status)
 
         if (!payments || payments.length === 0) {
