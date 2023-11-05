@@ -10,7 +10,8 @@ const Activity = require("../models/Activity");
 const Rent = require("../models/Rent");
 const Card = require("../models/Card");
 const Review = require("../models/Review");
-const stripe = require('stripe')('sk_test_51M6KI7Jb9nyriLWoahD6dzwy06PfzLdDBt72MjJv1quIUgJXRQXAhI7bfH617cUKES7G5eQpCBnKV6KooQwrda5c00oLKLZP0w');
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 
 
@@ -122,8 +123,8 @@ const signUp = async (req, res, next) => {
     const bankInfo = JSON.parse(req.body.bankInfo)
     const address = JSON.parse(req.body.address)
 
-    console.log(bankInfo)
-    console.log(address)
+    console.log("BA", bankInfo)
+    console.log("ADD", address)
     try {
         const {
             fullName,
@@ -142,7 +143,7 @@ const signUp = async (req, res, next) => {
             role,
         } = req.body;
 
-        console.log(req.body.address)
+        console.log("BOdy", req.body)
 
         // Check if the user already exists
         const userExist = await User.findOne({ email });
@@ -253,7 +254,7 @@ const signUp = async (req, res, next) => {
         const backFileId = backFileUpload.id;
 
 
-        console.log(frontFileId, backFileId)
+        console.log("fb", frontFileId, backFileId)
 
 
         const account = await stripe.accounts.create({
@@ -339,7 +340,7 @@ const signUp = async (req, res, next) => {
         });
 
 
-        console.log('stripeConnectAccount', account.id);
+        console.log('stripeConnectAccount', account);
         user.stripeConnectAccountId = account.id;
         await user.save();
 
