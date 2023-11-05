@@ -123,15 +123,12 @@ const signUp = async (req, res, next) => {
     const bankInfo = JSON.parse(req.body.bankInfo)
     const address = JSON.parse(req.body.address)
 
-    console.log("BA", bankInfo)
-    console.log("ADD", address)
     try {
         const {
             fullName,
             email,
             phoneNumber, // Add phoneNumber to the request body
             gender,
-            address,
             dateOfBirth,
             password,
             KYC,
@@ -139,11 +136,9 @@ const signUp = async (req, res, next) => {
             creditCardNumber, // Correct the variable name to creditCardNumber
             ine,
             image,
-            bankInfo,
             role,
         } = req.body;
 
-        console.log("BOdy", req.body)
 
         // Check if the user already exists
         const userExist = await User.findOne({ email });
@@ -165,14 +160,13 @@ const signUp = async (req, res, next) => {
             });
         }
 
-        console.log("Kyc", req.files.KYC[0].path);
 
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
             imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
         }
-        // console.log(imageFileName)
+
         // Create the user in the database
         const user = await User.create({
             fullName,
@@ -191,6 +185,7 @@ const signUp = async (req, res, next) => {
             role,
             bankInfo
         });
+
 
         // Clear any previous timer for the user (if exists)
         if (userTimers.has(user._id)) {
@@ -240,6 +235,9 @@ const signUp = async (req, res, next) => {
             },
         });
 
+        console.log("fileUpload")
+        console.log("fileUpload", fileUpload)
+
         const backFileUpload = await stripe.files.create({
             purpose: 'identity_document',
             file: {
@@ -253,18 +251,14 @@ const signUp = async (req, res, next) => {
         const frontFileId = fileUpload.id;
         const backFileId = backFileUpload.id;
 
-
-        console.log("fb", frontFileId, backFileId)
-
-
         const account = await stripe.accounts.create({
-            country: 'MX',
+            country: address.country,
             type: 'custom',
             business_type: 'individual',
             email: email,
             // external_account: 'btok_1O4dT0Jb9nyriLWow9TwyDTZ',
             tos_acceptance: {
-                service_agreement: 'recipient',
+                // service_agreement: 'recipient',
                 ip: req.ip,
                 date: Math.floor(new Date().getTime() / 1000)
             },
@@ -273,7 +267,7 @@ const signUp = async (req, res, next) => {
                 name: fullName,
                 product_description: 'Your business description',
                 support_address: {
-                    city: 'Mexico City',
+                    city: 'Mexico',
                     country: 'MX',
                     line1: 'Mexico',
                     line2: 'Mexico',
@@ -303,11 +297,11 @@ const signUp = async (req, res, next) => {
                 id_number: ine,
                 phone: phoneNumber,
                 address: {
-                    city: req.body.address.city,
-                    country: req.body.address.country,
-                    line1: req.body.address.line1,
-                    postal_code: req.body.address.postal_code,
-                    state: req.body.address.state,
+                    city: address.city,
+                    country: address.country,
+                    line1: address.line1,
+                    postal_code: address.postal_code,
+                    state: address.state,
                 },
                 verification: {
                     document: {
@@ -333,9 +327,9 @@ const signUp = async (req, res, next) => {
                 object: 'bank_account',
                 country: 'MX',
                 currency: 'mxn',
-                account_holder_name: req.body.bankInfo.account_holder_name,
-                account_holder_type: req.body.bankInfo.account_holder_type,
-                account_number: req.body.bankInfo.account_number,
+                account_holder_name: bankInfo.account_holder_name,
+                account_holder_type: bankInfo.account_holder_type,
+                account_number: bankInfo.account_number,
             },
         });
 
