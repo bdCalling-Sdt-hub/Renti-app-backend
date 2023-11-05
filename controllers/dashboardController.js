@@ -101,7 +101,7 @@ const hostTotalIncome = async (req, res, next) => {
         }
 
         // Total Income for the host user
-        const totalPayments = await Payment.find({ hostId: user._id });
+        const totalPayments = await Payment.find({ hostId: user._id }).populate("carId");
 
         if (!totalPayments || totalPayments.length === 0) {
             return res.status(404).json({ message: 'Payment not found' });
