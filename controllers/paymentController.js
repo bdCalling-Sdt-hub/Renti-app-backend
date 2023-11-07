@@ -99,13 +99,16 @@ const payment = async (req, res, next) => {
         const { product, token } = req.body;
         const { requestId } = req.params;
 
-        console.log("product", token)
+        console.log("product", req.params)
 
         const user = await User.findById(req.body.userId);
 
-        const rentRequest = await Rent.findById(requestId);
+        const rentRequest = await Rent.findOne({ hostId: requestId });
 
-        const stripeConnectAccount = await Rent.findById(requestId).populate('hostId');
+        console.log("Hello", rentRequest)
+
+        const stripeConnectAccount = await Rent.findOne({ hostId: requestId }).populate('hostId');
+        console.log("HHHH", stripeConnectAccount)
         const stripeConnectAccountID = stripeConnectAccount.hostId.stripeConnectAccountId;
         console.log("Host Info", stripeConnectAccountID);
 
@@ -133,7 +136,7 @@ const payment = async (req, res, next) => {
             shipping: {
                 name: "John Doe", // Replace with the actual name
                 address: {
-                    country: "US", // Replace with the actual country code
+                    country: "MX", // Replace with the actual country code
                 },
             },
         });
@@ -144,7 +147,7 @@ const payment = async (req, res, next) => {
 
         const transfer = await stripe.transfers.create({
             amount: transferAmount,
-            currency: 'usd',
+            currency: 'mxn',
             source_transaction: paymentData.id,
             destination: stripeConnectAccountID,
             transfer_group: 'ORDER10',
@@ -162,6 +165,8 @@ const payment = async (req, res, next) => {
             rentId: rentRequest,
             hostId: rentRequest.hostId,
         });
+
+        console.log("createdPayment", createdPayment)
 
         // Update the Car model with the paymentId
         const carToUpdate = await Car.findById(rentRequest.carId);
