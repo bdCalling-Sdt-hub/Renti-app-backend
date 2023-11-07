@@ -4,9 +4,9 @@ const Message = require("../models/Message");
 exports.addChat = async (chatInfo) => {
   try {
     console.log(chatInfo.participants)
-    const existingChat = await Chat.findOne({ participants: chatInfo.participants });
-    console.log(existingChat)
-    if (existingChat) {
+    const existingChat = await Chat.find({ participants: chatInfo.participants });
+    console.log("existingChat", existingChat)
+    if (existingChat?.length > 0) {
       return existingChat;
     } else {
       const newChat = await Chat.create({ participants: chatInfo.participants });
@@ -36,8 +36,12 @@ exports.getChatById = async (id) => {
 exports.getChatByParticipantId = async (id) => {
   try {
     const chat = await Chat.find({ participants: id })
-      .populate('participants')
-    console.log("All Check List------>", id, chat)
+      .populate({
+        path: 'participants',
+        match: { _id: { $ne: id } }, // Exclude your own user ID
+        select: 'role image fullName',
+      });
+    console.log("All Check List------>", id, chat.length, chat);
     if (chat.length > 0) {
       return chat;
     }

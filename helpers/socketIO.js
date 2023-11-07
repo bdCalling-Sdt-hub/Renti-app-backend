@@ -26,15 +26,16 @@ const socketIO = (io) => {
       console.log("message info------->", data)
       const message = await addMessage(data)
       console.log('new message---------> ', message)
-      const allMessages = await getMessageByChatId(message.chat)
+      const allMessages = await getMessageByChatId(message?.chat)
       console.log('all messages list----> ', allMessages)
-      io.to('room' + message.chat).emit('all-messages', allMessages)
+      io.to('room' + message?.chat).emit('all-messages', allMessages)
     })
     socket.on('get-all-chats', async (data) => {
       const allChats = await getChatByParticipantId(data.uid)
       socket.join('room' + data.uid)
       console.log('hitting from socket -------->', allChats)
       io.to('room' + data.uid).emit('all-chats', allChats)
+      // socket.emit('all-chats', allChats)
     })
 
     socket.on('leave-room', (data) => {
