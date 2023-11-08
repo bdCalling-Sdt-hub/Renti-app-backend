@@ -22,6 +22,16 @@ const createRentRequest = async (req, res, next) => {
         const fromDate = new Date(startDate);
         const toDate = new Date(endDate);
 
+        const existingRentRequest = await Rent.findOne({
+            userId: req.body.userId,
+            startDate: fromDate,
+            endDate: toDate
+        });
+
+        if (existingRentRequest) {
+            return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
+        }
+
         const timeDiff = toDate - fromDate;
 
         const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));

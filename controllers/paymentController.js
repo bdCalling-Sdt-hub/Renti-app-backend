@@ -1,5 +1,6 @@
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// const stripe = require('stripe')('sk_test_51M6KI7Jb9nyriLWoahD6dzwy06PfzLdDBt72MjJv1quIUgJXRQXAhI7bfH617cUKES7G5eQpCBnKV6KooQwrda5c00oLKLZP0w');
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
@@ -103,14 +104,15 @@ const payment = async (req, res, next) => {
 
         const user = await User.findById(req.body.userId);
 
-        const rentRequest = await Rent.findOne({ hostId: requestId });
+        // const rentRequest = await Rent.findOne({ hostId: requestId });
+        const rentRequest = await Rent.findById(requestId);
 
         console.log("Hello", rentRequest)
 
-        const stripeConnectAccount = await Rent.findOne({ hostId: requestId }).populate('hostId');
+        const stripeConnectAccount = await Rent.findById(requestId).populate('hostId');
         console.log("HHHH", stripeConnectAccount)
         const stripeConnectAccountID = stripeConnectAccount.hostId.stripeConnectAccountId;
-        console.log("Host Info", stripeConnectAccountID);
+        console.log("Destination ID", stripeConnectAccountID);
 
         if (!rentRequest) {
             return res.status(404).json({ message: 'Request is not found for payment' });
