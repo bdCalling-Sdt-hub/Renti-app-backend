@@ -6,6 +6,7 @@ const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
 const Car = require('../models/Car');
 const User = require('../models/User');
+const Percentage = require('../models/Percentage');
 
 
 // const payment = async (req, res, next) => {
@@ -145,7 +146,13 @@ const payment = async (req, res, next) => {
 
         console.log("paymentData", paymentData)
 
-        const transferAmount = (product.price * 100 * 0.75);
+        // -----------------------------------------------------
+        const percentages = await Percentage.find({});
+        const contentNumbers = percentages.map(item => item.content);
+        const numberPercentages = Number(contentNumbers);
+        // -----------------------------------------------------
+
+        const transferAmount = (product.price * 100 * ((100 - numberPercentages) / 100));
 
         const transfer = await stripe.transfers.create({
             amount: transferAmount,
