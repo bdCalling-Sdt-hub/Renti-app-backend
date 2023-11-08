@@ -120,8 +120,10 @@ const userSignUp = async (req, res, next) => {
 
 
 const signUp = async (req, res, next) => {
-    const bankInfo = JSON.parse(req.body.bankInfo)
-    const address = JSON.parse(req.body.address)
+    const bankInfo = req.body.bankInfo
+    const address = req.body.address
+
+    console.log((address, bankInfo))
 
     try {
         const {
@@ -440,6 +442,9 @@ const signIn = async (req, res, next) => {
 
         // Find the user by email
         const user = await User.findOne({ email });
+
+        console.log("object", user)
+
 
         if (!user) {
             return res.status(401).json({ message: 'Authentication failed' });
