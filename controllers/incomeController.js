@@ -512,9 +512,11 @@ const userHourlyRentiPaymentList = async (req, res, next) => {
 
             // Fetch payments made within the current hour
             const payments = await Payment.find({
-                payout: true,
+                // paymentData.paid = true,
                 createdAt: { $gte: startHour, $lt: endHour },
             });
+
+            // console.log("object", payments)
 
             // Create a map to store user payment counts for the current hour
             const userPaymentCounts = new Map();
