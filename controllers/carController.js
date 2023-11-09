@@ -404,7 +404,7 @@ const allHostCars = async (req, res, next) => {
             .skip(skip)
             .limit(limit)
             // .populate('paymentId');
-            .populate({ path: 'paymentId', populate: { path: 'rentId' } });
+            .populate({ path: 'paymentId', populate: { path: 'rentId userId' } });
 
         console.log("Hello Car", cars)
 
