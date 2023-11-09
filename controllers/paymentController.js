@@ -101,17 +101,19 @@ const payment = async (req, res, next) => {
         const { product, token } = req.body;
         const { requestId } = req.params;
 
-        console.log("product", req.params)
-
-        const user = await User.findById(req.body.userId);
+        console.log("requestId", requestId)
 
         const rentRequest = await Rent.findById(requestId);
         // const rentRequest = await Rent.findById(requestId);
 
-        console.log("Hello", rentRequest)
+        console.log("Rent", rentRequest)
+
+
+        const user = await User.findById(req.body.userId);
 
         const stripeConnectAccount = await Rent.findById(requestId).populate('hostId');
-        console.log("HHHH", stripeConnectAccount)
+        console.log("Rent in Host", stripeConnectAccount)
+
         const stripeConnectAccountID = stripeConnectAccount.hostId.stripeConnectAccountId;
         console.log("Destination ID", stripeConnectAccountID);
 
