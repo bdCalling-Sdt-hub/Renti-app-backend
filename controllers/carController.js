@@ -402,9 +402,14 @@ const allHostCars = async (req, res, next) => {
         // Find cars that match the search and pagination criteria
         const cars = await Car.find(carQuery)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            // .populate('paymentId');
+            .populate({ path: 'paymentId', populate: { path: 'rentId' } });
 
         console.log("Hello Car", cars)
+
+
+
 
         // Count total matching cars for pagination
         const totalCars = await Car.countDocuments(carQuery);

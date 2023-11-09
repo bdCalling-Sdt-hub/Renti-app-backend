@@ -25,7 +25,7 @@ const carSchema = new mongoose.Schema({
     carImage: { type: Object, required: false }, // Rent Trip Start
     carOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    paymentId: { type: mongoose.Schema.Types.ObjectId },
+    paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },
     averageRatings: { type: Number, required: false }
 },
     { timestamps: true },
