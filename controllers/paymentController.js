@@ -141,7 +141,7 @@ const payment = async (req, res, next) => {
             shipping: {
                 name: "John Doe", // Replace with the actual name
                 address: {
-                    country: "MX", // Replace with the actual country code
+                    country: "US", // Mx er somoy MX hobe
                 },
             },
         });
@@ -158,9 +158,9 @@ const payment = async (req, res, next) => {
 
         const transfer = await stripe.transfers.create({
             amount: transferAmount,
-            currency: 'mxn',
+            currency: 'usd', //Mx er somoy mxn hobe
             source_transaction: paymentData.id,
-            destination: stripeConnectAccountID,
+            destination: 'acct_1O5hQSR7TicUI3jD', //stripeConnectAccountID
             transfer_group: 'ORDER10',
         });
 
