@@ -17,7 +17,7 @@ const createRentRequest = async (req, res, next) => {
         const user = await User.findById(req.body.userId);
         const car = await Car.findById(req.params.carId);
 
-        const hourlyRate = car.hourlyRate;
+        const hourlyRate = car?.hourlyRate;
 
         const fromDate = new Date(startDate);
         const toDate = new Date(endDate);
@@ -28,8 +28,22 @@ const createRentRequest = async (req, res, next) => {
             endDate: toDate
         });
 
+        console.log("existingRentRequest", existingRentRequest)
+
         if (existingRentRequest) {
             return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
+        }
+
+        const acceptedRentRequest = await Rent.findOne({
+            endDate: { $lt: fromDate, $gt: toDate },
+            requestStatus: 'Accepted'
+        })
+
+        console.log("acceptedRentRequest", acceptedRentRequest)
+
+        if (acceptedRentRequest) {
+            console.log("acceptedRentRequest", acceptedRentRequest)
+            return res.status(400).json({ message: `Car is already rented from ${acceptedRentRequest.startDate} to ${acceptedRentRequest.endDate} `, acceptedRentRequest });
         }
 
         const timeDiff = toDate - fromDate;
