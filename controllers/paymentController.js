@@ -1,6 +1,5 @@
 require('dotenv').config();
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const stripe = require('stripe')('sk_test_51M6KI7Jb9nyriLWoahD6dzwy06PfzLdDBt72MjJv1quIUgJXRQXAhI7bfH617cUKES7G5eQpCBnKV6KooQwrda5c00oLKLZP0w');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/Payment');
 const Rent = require('../models/Rent');
@@ -106,10 +105,11 @@ const payment = async (req, res, next) => {
         const rentRequest = await Rent.findById(requestId);
         // const rentRequest = await Rent.findById(requestId);
 
-        console.log("Rent", rentRequest)
+        console.log("Rent", rentRequest.rentTripNumber)
 
 
         const user = await User.findById(req.body.userId);
+        console.log("User", user);
 
         const stripeConnectAccount = await Rent.findById(requestId).populate('hostId');
         console.log("Rent in Host", stripeConnectAccount)
@@ -133,15 +133,15 @@ const payment = async (req, res, next) => {
 
         const paymentData = await stripe.charges.create({
             amount: product.price * 100,
-            currency: 'usd', // Change this to 'eur' if you prefer Euros
-            transfer_group: 'ORDER10',
+            currency: 'mxn', // Change this to 'eur' if you prefer Euros
+            transfer_group: rentRequest.rentTripNumber,
             customer: customer.id,
             receipt_email: token.email,
             description: `Purchase product ${product.name}`,
             shipping: {
-                name: "John Doe", // Replace with the actual name
+                name: user.fullName, // Replace with the actual name
                 address: {
-                    country: "US", // Mx er somoy MX hobe
+                    country: "MX", // Mx er somoy MX hobe
                 },
             },
         });
@@ -158,10 +158,10 @@ const payment = async (req, res, next) => {
 
         const transfer = await stripe.transfers.create({
             amount: transferAmount,
-            currency: 'usd', //Mx er somoy mxn hobe
+            currency: 'mxn', //Mx er somoy mxn hobe
             source_transaction: paymentData.id,
-            destination: 'acct_1O5hQSR7TicUI3jD', //stripeConnectAccountID
-            transfer_group: 'ORDER10',
+            destination: stripeConnectAccountID, //stripeConnectAccountID
+            transfer_group: rentRequest.rentTripNumber,
         });
 
         console.log(transfer)

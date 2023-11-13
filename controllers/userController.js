@@ -11,8 +11,7 @@ const Rent = require("../models/Rent");
 const Card = require("../models/Card");
 const Review = require("../models/Review");
 require('dotenv').config();
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const stripe = require('stripe')('sk_test_51M6KI7Jb9nyriLWoahD6dzwy06PfzLdDBt72MjJv1quIUgJXRQXAhI7bfH617cUKES7G5eQpCBnKV6KooQwrda5c00oLKLZP0w');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 
 
@@ -260,7 +259,7 @@ const signUp = async (req, res, next) => {
             business_type: 'individual',
             email: email,
             tos_acceptance: {
-                service_agreement: 'recipient',   // MX er somoy ata off thakbe
+                // service_agreement: 'recipient',   // MX er somoy ata off thakbe
                 ip: req.ip,
                 date: Math.floor(new Date().getTime() / 1000)
             },
@@ -312,16 +311,6 @@ const signUp = async (req, res, next) => {
                     },
                 },
             },
-            // -------------------------Mx er somoy ata hobe na
-            // settings: {
-            //     branding: {
-            //         primary_color: '#000000',
-            //         secondary_color: '#ffffff',
-            //         logo: '', // Replace with the URL to your business logo
-            //         icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Sign-check-icon.png/768px-Sign-check-icon.png', // Replace with the URL to your business icon
-            //     },
-            // },
-            // --------------------------------------------------
             capabilities: {
                 transfers: {
                     requested: true,
