@@ -688,19 +688,7 @@ const allHosts = async (req, res, next) => {
 
 
         const rentList = await Rent.find({});
-        console.log(rentList)
-
-        const cardList = await Card.find({});
-        const hostCardData = {};
-
-        // Iterate through the cardList and associate cards with their hosts
-        for (const card of cardList) {
-            const hostId = card.addedBy; // Adjust this to match your Card schema
-            if (!hostCardData[hostId]) {
-                hostCardData[hostId] = [];
-            }
-            hostCardData[hostId].push(card);
-        }
+        // console.log(rentList)
 
 
         const carList = await Car.find({}); // Fetch all cars
@@ -725,12 +713,12 @@ const allHosts = async (req, res, next) => {
         hostData = paginatedHosts.map(host => ({
             carCount: hostCarCounts[host._id] || 0,
             host,
+
         }));
 
         hostData = paginatedHosts.map(host => ({
             carCount: hostCarCounts[host._id] || 0,
             host,
-            cards: hostCardData[host._id] || [], // Attach card data to the host
         }));
 
         res.status(200).json({
