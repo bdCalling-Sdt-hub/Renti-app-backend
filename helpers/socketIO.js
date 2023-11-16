@@ -3,15 +3,23 @@ const { addMessage, getMessageByChatId } = require("../controllers/messageContro
 
 const socketIO = (io) => {
   io.on('connection', (socket) => {
-    console.log(`ID: ${socket.id} just connected`);
+    console.log(`ID: ${socket.id} just connectedemit('on`);
     socket.on('join-room', (data) => {
       //console.log('someone wants to join--->', data);
       socket.join('room' + data.uid);
-      socket.emit('join-check', 'You are in room: ' + data.uid);
+      socket.emit('join-check',
+
+        {
+          "uid": data.uid
+        }
+
+      );
     });
 
     socket.on('add-new-chat', async (data) => {
-      //console.log("data info---->", data.chatInfo)
+      console.log("data info----> data:", data)
+      console.log("data info----> uid:", data.uid)
+      console.log("data info---->: chatInfo", data.chatInfo)
       const chat = await addChat(data.chatInfo)
       console.log("add-new chat--->", chat, data.uid)
       io.to('room' + data.uid).emit('new-chat', chat)

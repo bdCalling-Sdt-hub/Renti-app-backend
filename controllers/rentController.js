@@ -34,17 +34,6 @@ const createRentRequest = async (req, res, next) => {
             return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
         }
 
-        // const acceptedRentRequest = await Rent.findOne({
-        //     endDate: { $lt: fromDate, $gt: toDate },
-        //     requestStatus: 'Accepted'
-        // })
-
-        // console.log("acceptedRentRequest", acceptedRentRequest)
-
-        // if (acceptedRentRequest) {
-        //     console.log("acceptedRentRequest", acceptedRentRequest)
-        //     return res.status(400).json({ message: `Car is already rented from ${acceptedRentRequest.startDate} to ${acceptedRentRequest.endDate} `, acceptedRentRequest });
-        // }
         const acceptedRentRequest = await Rent.findOne({
             carId: req.params.carId,
             requestStatus: 'Accepted',
