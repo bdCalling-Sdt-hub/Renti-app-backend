@@ -198,8 +198,8 @@ const payment = async (req, res, next) => {
             linkId: createdPayment._id,
             type: 'host'
         }
-        await addNotification(newNotification)
-        const notification = await getAllNotification('host', 6, 1, rentRequest.hostId)
+        const notification = await addNotification(newNotification)
+        // const notification = await getAllNotification('host', 6, 1, rentRequest.hostId)
         console.log('notification ', notification)
         const roomId = rentRequest.hostId.toString()
         console.log('room', roomId)
