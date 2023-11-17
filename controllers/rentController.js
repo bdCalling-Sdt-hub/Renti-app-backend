@@ -159,7 +159,7 @@ const acceptRentRequest = async (req, res, next) => {
 
         const car = await Car.findOne({ _id: rentRequest.carId });
 
-        console.log("Rehhhhh---->", car.userId)
+        console.log("Rehhhhh---->", car?.carOwner)
 
         if (!rentRequest) {
             res.status(404).json({ message: 'Request not found' })
@@ -181,7 +181,7 @@ const acceptRentRequest = async (req, res, next) => {
             const message = 'Rent request Accepted'
             const newNotification = {
                 message: message,
-                receiverId: car.userId,
+                receiverId: car.carOwner,
                 image: car.image[0],
                 linkId: rentRequest._id,
                 type: 'user'
@@ -190,7 +190,7 @@ const acceptRentRequest = async (req, res, next) => {
             const notification = await addNotification(newNotification)
             // const notification = await getAllNotification('user', 6, 1, car.userId)
             console.log('notification ', notification)
-            const roomId = car.userId.toString()
+            const roomId = car.carOwner.toString()
             console.log('room---------->', roomId)
             io.to('room' + roomId).emit('user-notification', notification);
             // Notification End
@@ -206,16 +206,17 @@ const acceptRentRequest = async (req, res, next) => {
             const message = 'Rent request Rejected'
             const newNotification = {
                 message: message,
-                receiverId: car.userId,
+                // receiverId: car.userId,
+                receiverId: car.carOwner,
                 image: car.image,
                 linkId: rentRequest._id,
                 type: 'user'
             }
             console.log("newNotification------>", newNotification)
             const notification = await addNotification(newNotification)
-            // const notification = await getAllNotification('user', 6, 1, car.userId)
+            // const notification = await getAllNotification('user', 6, 1, car.carOwner)
             console.log('notification ', notification)
-            const roomId = car.userId.toString()
+            const roomId = car.carOwner.toString()
             console.log('room---------->', roomId)
             io.to('room' + roomId).emit('user-notification', notification);
             // Notification End
