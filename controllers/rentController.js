@@ -182,7 +182,7 @@ const acceptRentRequest = async (req, res, next) => {
             const newNotification = {
                 message: message,
                 receiverId: car.userId,
-                image: car.image,
+                image: car.image[0],
                 linkId: rentRequest._id,
                 type: 'user'
             }
