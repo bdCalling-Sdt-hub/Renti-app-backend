@@ -10,6 +10,7 @@ async function addNotification(data) {
 
     // Save the notification to the database
     await newNotification.save();
+    return newNotification
   }
   catch (error) {
     console.error("Error adding notification:", error);
@@ -49,6 +50,7 @@ async function getAllNotification(type, limit = 10, page = 1, receiverId = null)
       notViewed = await Notification.countDocuments({ viewStatus: 'false', receiverId: receiverId, type: type });
       count = await Notification.countDocuments({ receiverId: receiverId, type: type });
     }
+    console.log('all notig---->', allNotification.length)
     const data = {
       allNotification,
       notViewed: notViewed,

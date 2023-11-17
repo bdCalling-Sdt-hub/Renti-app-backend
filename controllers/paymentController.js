@@ -6,6 +6,7 @@ const Rent = require('../models/Rent');
 const Car = require('../models/Car');
 const User = require('../models/User');
 const Percentage = require('../models/Percentage');
+const { addNotification, getAllNotification } = require('./notificationController');
 
 
 // const payment = async (req, res, next) => {
@@ -186,6 +187,24 @@ const payment = async (req, res, next) => {
 
         rentRequest.payment = 'Completed';
         await rentRequest.save();
+
+
+        // Notification Start 
+        const message = user.fullName + ' Sent Success Payment'
+        const newNotification = {
+            message: message,
+            receiverId: rentRequest.hostId,
+            image: user.image,
+            linkId: createdPayment._id,
+            type: 'host'
+        }
+        await addNotification(newNotification)
+        const notification = await getAllNotification('host', 6, 1, rentRequest.hostId)
+        console.log('notification ', notification)
+        const roomId = rentRequest.hostId.toString()
+        console.log('room', roomId)
+        io.to('room' + roomId).emit('host-notification', notification);
+        // Notification End
 
         res.status(200).json({ message: 'Payment success', paymentData });
     } catch (error) {

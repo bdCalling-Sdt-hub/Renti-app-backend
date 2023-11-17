@@ -102,9 +102,12 @@ const createRentRequest = async (req, res, next) => {
             linkId: rents._id,
             type: 'host'
         }
-        await addNotification(newNotification)
-        const notification = await getAllNotification('host', 6, 1, rents.hostId)
-        io.to('room' + rents.hostId).emit('host-notification', notification);
+        const notification = await addNotification(newNotification)
+        // const notification = await getAllNotification('host', 6, 1, rents.hostId)
+        console.log('notification ', notification)
+        const roomId = rents.hostId._id.toString()
+        console.log('room', roomId)
+        io.to('room' + roomId).emit('host-notification', notification);
         // Notification End
 
 
@@ -156,6 +159,8 @@ const acceptRentRequest = async (req, res, next) => {
 
         const car = await Car.findOne({ _id: rentRequest.carId });
 
+        console.log("Rehhhhh---->", car.userId)
+
         if (!rentRequest) {
             res.status(404).json({ message: 'Request not found' })
         }
@@ -171,12 +176,50 @@ const acceptRentRequest = async (req, res, next) => {
         if (request === 'Accepted') {
             rentRequest.requestStatus = 'Accepted';
             await rentRequest.save();
+
+            // Notification Start 
+            const message = 'Rent request Accepted'
+            const newNotification = {
+                message: message,
+                receiverId: car.userId,
+                image: car.image,
+                linkId: rentRequest._id,
+                type: 'user'
+            }
+            console.log("newNotification------>", newNotification)
+            const notification = await addNotification(newNotification)
+            // const notification = await getAllNotification('user', 6, 1, car.userId)
+            console.log('notification ', notification)
+            const roomId = car.userId.toString()
+            console.log('room---------->', roomId)
+            io.to('room' + roomId).emit('user-notification', notification);
+            // Notification End
+
             return res.status(200).json({ message: 'Request Accepted' });
         }
 
         if (request === 'Rejected') {
             rentRequest.requestStatus = 'Rejected';
             await rentRequest.save();
+
+            // Notification Start 
+            const message = 'Rent request Rejected'
+            const newNotification = {
+                message: message,
+                receiverId: car.userId,
+                image: car.image,
+                linkId: rentRequest._id,
+                type: 'user'
+            }
+            console.log("newNotification------>", newNotification)
+            const notification = await addNotification(newNotification)
+            // const notification = await getAllNotification('user', 6, 1, car.userId)
+            console.log('notification ', notification)
+            const roomId = car.userId.toString()
+            console.log('room---------->', roomId)
+            io.to('room' + roomId).emit('user-notification', notification);
+            // Notification End
+
             return res.status(200).json({ message: 'Request Rejected' });
         }
 
@@ -613,6 +656,7 @@ const deleteRentById = async (req, res, next) => {
 const startTrip = async (req, res, next) => {
     console.log('called')
     const requestId = req.params.requestId;
+    console.log("requestId--------: ", requestId)
     try {
 
         const { tripStatus, carImage } = req.body;
@@ -631,7 +675,7 @@ const startTrip = async (req, res, next) => {
         const user = await User.findById(req.body.userId);
         console.log("Dog User", user._id)
         const rent = await Rent.findOne({ _id: requestId });
-        // console.log(rent)
+        console.log("rent----------------", rent)
 
         if (!rent) {
             return res.status(404).json({ message: 'Rent request not found' });
@@ -674,6 +718,22 @@ const startTrip = async (req, res, next) => {
                 await user.save();
             }
 
+            // Notification Start 
+            const message = user.fullName + ' Trip ' + tripStatus + 'Successfully'
+            const newNotification = {
+                message: message,
+                receiverId: rent.hostId,
+                image: user.image,
+                linkId: rent._id,
+                type: 'host'
+            }
+            const notification = await addNotification(newNotification)
+            //const notification = await getAllNotification('host', 6, 1, rent.hostId)
+            console.log('notification ', notification)
+            const roomId = rent.hostId.toString()
+            console.log('room', roomId)
+            io.to('room' + roomId).emit('host-notification', notification);
+            // Notification End
 
         }
 
@@ -682,6 +742,22 @@ const startTrip = async (req, res, next) => {
         // await user.save()
 
 
+        // Notification Start 
+        const message = user.fullName + ' Trip ' + tripStatus + 'Successfully'
+        const newNotification = {
+            message: message,
+            receiverId: rent.hostId,
+            image: user.image,
+            linkId: rent._id,
+            type: 'host'
+        }
+        const notification = await addNotification(newNotification)
+        //const notification = await getAllNotification('host', 6, 1, rent.hostId)
+        console.log('notification ', notification)
+        const roomId = rent.hostId.toString()
+        console.log('room', roomId)
+        io.to('room' + roomId).emit('host-notification', notification);
+        // Notification End
 
 
         res.status(200).json({ message: `Trip ${tripStatus} successfully` });
