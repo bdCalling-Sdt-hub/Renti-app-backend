@@ -15,10 +15,10 @@ router.post('/add', upload, isValidUser, createCar);
 router.get('/all', isValidUser, allCars);
 
 //luxury Cars
-router.get('/luxury', isValidUser, luxuryCars);
+router.get('/luxury', luxuryCars); //isValidUser,
 
 // Offer car
-router.get('/offer', isValidUser, offerCars);
+router.get('/offer', offerCars); ///isValidUser,
 
 router.get('/host', isValidUser, allHostCars);
 

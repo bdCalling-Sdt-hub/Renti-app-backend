@@ -311,6 +311,7 @@ const signUp = async (req, res, next) => {
             });
 
 
+
             // Clear any previous timer for the user (if exists)
             if (userTimers.has(user._id)) {
                 clearTimeout(userTimers.get(user._id));

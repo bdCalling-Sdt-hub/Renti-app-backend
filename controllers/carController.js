@@ -171,28 +171,40 @@ const luxuryCars = async (req, res, next) => {
         const count = await Car.countDocuments(filter);
 
 
-        const user = await User.findById(req.body.userId);
+        // const user = await User.findById(req.body.userId);
         if (!luxuryCars) {
             res.status(404).json({ message: 'Car not found' });
         }
 
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-        } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
-            res.status(200).json({
-                message: "Luxury Car Retrieved Successfully",
-                luxuryCars,
-                pagination: {
-                    totalDocuments: count,
-                    totalPage: Math.ceil(count / limit),
-                    currentPage: page,
-                    previousPage: page - 1 > 0 ? page - 1 : null,
-                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
-                }
-            });
-        } else {
-            res.status(501).json({ message: 'You are not authorized' });
-        }
+        // if (!user) {
+        //     res.status(404).json({ message: 'User not found' });
+        // } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+        //     res.status(200).json({
+        //         message: "Luxury Car Retrieved Successfully",
+        //         luxuryCars,
+        //         pagination: {
+        //             totalDocuments: count,
+        //             totalPage: Math.ceil(count / limit),
+        //             currentPage: page,
+        //             previousPage: page - 1 > 0 ? page - 1 : null,
+        //             nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+        //         }
+        //     });
+        // } else {
+        //     res.status(501).json({ message: 'You are not authorized' });
+        // }
+
+        res.status(200).json({
+            message: "Luxury Car Retrieved Successfully",
+            luxuryCars,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+            }
+        });
 
     } catch (error) {
         next(error)
@@ -232,28 +244,40 @@ const offerCars = async (req, res, next) => {
         const count = await Car.countDocuments(filter);
 
 
-        const user = await User.findById(req.body.userId);
+        // const user = await User.findById(req.body.userId);
         if (!offerCars) {
             res.status(404).json({ message: 'Offer Car not found' });
         }
 
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-        } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
-            res.status(200).json({
-                message: "Offer Car Retrieved Successfully",
-                offerCars,
-                pagination: {
-                    totalDocuments: count,
-                    totalPage: Math.ceil(count / limit),
-                    currentPage: page,
-                    previousPage: page - 1 > 0 ? page - 1 : null,
-                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
-                }
-            });
-        } else {
-            res.status(501).json({ message: 'You are not authorized' });
-        }
+        // if (!user) {
+        //     res.status(404).json({ message: 'User not found' });
+        // } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+        //     res.status(200).json({
+        //         message: "Offer Car Retrieved Successfully",
+        //         offerCars,
+        //         pagination: {
+        //             totalDocuments: count,
+        //             totalPage: Math.ceil(count / limit),
+        //             currentPage: page,
+        //             previousPage: page - 1 > 0 ? page - 1 : null,
+        //             nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+        //         }
+        //     });
+        // } else {
+        //     res.status(501).json({ message: 'You are not authorized' });
+        // }
+
+        res.status(200).json({
+            message: "Offer Car Retrieved Successfully",
+            offerCars,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+            }
+        });
 
     } catch (error) {
         // next(error)
