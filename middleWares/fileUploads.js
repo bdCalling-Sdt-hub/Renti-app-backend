@@ -26,10 +26,10 @@ const configureFileUpload = () => {
                 ? cb(null, true)
                 : cb(null, false);
         } else if (file.fieldname === 'KYC') {
-            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf'
+            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'application/x-x509-ca-cert' || file.mimetype === 'application/octet-stream'
                 ? cb(null, true)
                 : cb(null, false);
-        } 
+        }
     };
 
     const upload = multer({
