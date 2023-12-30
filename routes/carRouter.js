@@ -12,7 +12,7 @@ const upload = configureFileUpload();
 router.post('/add', upload, isValidUser, createCar);
 
 //All cars
-router.get('/all', isValidUser, allCars);
+router.get('/all', allCars); //isValidUser
 
 //luxury Cars
 router.get('/luxury', luxuryCars); //isValidUser,
