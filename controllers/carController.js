@@ -9,7 +9,7 @@ const { addNotification, getAllNotification } = require("./notificationControlle
 //Add car
 const createCar = async (req, res, next) => {
     try {
-        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate, specialCharacteristics } = req.body;
+        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate, specialCharacteristics, carLocation } = req.body;
 
         // // Find the user
         const user = await User.findById(req.body.userId);
@@ -45,6 +45,7 @@ const createCar = async (req, res, next) => {
                 image: publicImageUrl,
                 year,
                 carLicenseNumber,
+                carLocation,
                 carDescription,
                 insuranceStartDate,
                 insuranceEndDate,
@@ -120,25 +121,26 @@ const allCars = async (req, res, next) => {
             res.status(404).json({ message: 'Car not found' });
         }
 
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-        } else if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
-            res.status(200).json({
-                totalCar,
-                activeCar,
-                reservedCar,
-                cars,
-                pagination: {
-                    totalDocuments: count,
-                    totalPage: Math.ceil(count / limit),
-                    currentPage: page,
-                    previousPage: page - 1 > 0 ? page - 1 : null,
-                    nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
-                }
-            });
-        } else {
-            res.status(501).json({ message: 'You are not authorized' });
-        }
+        // if (!user) {
+        //     res.status(404).json({ message: 'User not found' });
+        // } else 
+        // if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+        res.status(200).json({
+            totalCar,
+            activeCar,
+            reservedCar,
+            cars,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+            }
+        });
+        // } else {
+        //     res.status(501).json({ message: 'You are not authorized' });
+        // }
 
     } catch (error) {
         next(error)

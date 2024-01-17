@@ -124,7 +124,7 @@ const signUp = async (req, res, next) => {
     const bankInfo = req.body.bankInfo
     const address = req.body.address
 
-    console.log((address, bankInfo))
+    // console.log((req.body.address))
 
     try {
         const {
@@ -153,7 +153,6 @@ const signUp = async (req, res, next) => {
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
         const kycFileNames = [];
-
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
