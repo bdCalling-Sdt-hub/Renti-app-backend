@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema({
   KYC: { type: Object, required: false },
   RFC: { type: String, required: false },
   creaditCardNumber: { type: String, required: false },
+  expireDate: { type: String, required: false },
+  cvv: { type: String, required: false },
   stripeConnectAccountId: { type: String, required: false },
   ine: { type: String, required: false },
   image: { type: Object, required: false },

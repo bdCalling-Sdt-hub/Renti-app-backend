@@ -1,7 +1,7 @@
 // routes/auth.js
 const express = require('express');
 const { isValidUser } = require('../middleWares/auth');
-const { createCard, allCard } = require('../controllers/cardController');
+const { createCard, allCard, singleCard } = require('../controllers/cardController');
 const router = express.Router();
 
 
@@ -9,6 +9,8 @@ const router = express.Router();
 router.post('/', isValidUser, createCard);
 
 //All cars
-router.get('/', isValidUser, allCard);
+router.get('/hhh', isValidUser, allCard);
+
+router.get('/', isValidUser, singleCard);
 
 module.exports = router;

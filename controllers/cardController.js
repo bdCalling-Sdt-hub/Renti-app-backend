@@ -62,4 +62,25 @@ const allCard = async (req, res, next) => {
     }
 };
 
-module.exports = { createCard, allCard }
+const singleCard = async (req, res, next) => {
+    try {
+
+        const cardInfo = await User.findById(req.body.userId).select('creaditCardNumber expireDate cvv role');
+
+        if (!cardInfo) {
+            res.status(404).json({ message: 'User not found' });
+        } else if (cardInfo.role === 'user') {
+            res.status(200).json({
+                message: "Card Retrived Successfull",
+                cardInfo,
+            });
+        } else {
+            res.status(501).json({ message: 'You are not authorized' });
+        }
+
+    } catch (error) {
+        next(error)
+    }
+};
+
+module.exports = { createCard, allCard, singleCard }

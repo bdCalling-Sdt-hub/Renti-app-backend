@@ -21,7 +21,7 @@ const userTimers = new Map();
 
 const userSignUp = async (req, res, next) => {
     try {
-        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, ine, image, role } = req.body;
+        const { fullName, email, phoneNumber, gender, address, dateOfBirth, password, KYC, RFC, creaditCardNumber, expireDate, cvv, ine, image, role } = req.body;
 
         console.log(req.body);
 
@@ -67,6 +67,8 @@ const userSignUp = async (req, res, next) => {
             KYC: kycFileNames,
             RFC,
             creaditCardNumber,
+            expireDate,
+            cvv,
             ine,
             oneTimeCode,
             role
