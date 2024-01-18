@@ -23,7 +23,7 @@ router.get('/offer', offerCars); ///isValidUser,
 router.get('/host', isValidUser, allHostCars);
 
 //Get single car
-router.get('/:id', getCarsById);//isValidUser,
+router.get('/:id', isValidUser, getCarsById);//isValidUser,
 
 //Update single car
 router.post('/update/:id', upload, isValidUser, updateById);
