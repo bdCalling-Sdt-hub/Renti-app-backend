@@ -24,6 +24,9 @@ const carSchema = new mongoose.Schema({
     activeReserve: { type: Boolean, required: false, default: 'false' },
     tripStatus: { type: String, enum: ['Start', 'End', 'Pending'], default: 'Pending' },
     carImage: { type: Object, required: false }, // Rent Trip Start
+    // carApproved: { type: Boolean, default: false },
+    // isCarActive: { type: Boolean, default: true },
+    isCarActive: { type: String, enum: ['Active', 'Deactive',  'Cancel', 'Pending'], default: 'Pending' },
     carOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },

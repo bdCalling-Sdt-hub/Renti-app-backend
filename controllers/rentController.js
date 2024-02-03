@@ -18,6 +18,7 @@ const createRentRequest = async (req, res, next) => {
         const car = await Car.findById(req.params.carId);
 
         const hourlyRate = car?.hourlyRate;
+        console.log(hourlyRate)
 
         const fromDate = new Date(startDate);
         const toDate = new Date(endDate);
@@ -32,6 +33,12 @@ const createRentRequest = async (req, res, next) => {
 
         if (existingRentRequest) {
             return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
+        }
+
+
+        if (car.isCarActive === "Deactive") {
+            console.log(car.isCarActive);
+            return res.status(400).json({ message: 'This car Deactive, Try Another Car Rent Request' });
         }
 
         const acceptedRentRequest = await Rent.findOne({
@@ -60,13 +67,16 @@ const createRentRequest = async (req, res, next) => {
         }
 
         const timeDiff = toDate - fromDate;
+        console.log("timeDiff", timeDiff)
 
+        const totalDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
         const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
-        console.log(`Total hours: ${totalHours} hours and ${totalMinutes} minutes`);
+        console.log(`Total days : ${totalDays} Total hours: ${totalHours} hours and ${totalMinutes} minutes`);
 
-        const totalAmount = Number(hourlyRate) * totalHours
+        const totalAmount = Number(hourlyRate) * totalDays
+        console.log(totalAmount)
 
         if (!user) {
             return res.status(404).json({ message: 'You do not have permission to' });
@@ -81,7 +91,7 @@ const createRentRequest = async (req, res, next) => {
         const rents = await Rent.create({
             rentTripNumber: await generateCustomID(),
             totalAmount,
-            totalHours,
+            totalDays,
             startDate,
             endDate,
             userId: user,

@@ -9,7 +9,7 @@ const { addNotification, getAllNotification } = require("./notificationControlle
 //Add car
 const createCar = async (req, res, next) => {
     try {
-        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate, specialCharacteristics, carLocation } = req.body;
+        const { carModelName, hourlyRate, offerHourlyRate, image, year, carType, carLicenseNumber, carDescription, insuranceStartDate, insuranceEndDate, carLicenseImage, carColor, carDoors, carSeats, totalRun, gearType, registrationDate, specialCharacteristics, carLocation, carApproved, isCarActive } = req.body;
 
         // // Find the user
         const user = await User.findById(req.body.userId);
@@ -59,6 +59,8 @@ const createCar = async (req, res, next) => {
                 offerHourlyRate,
                 gearType,
                 carType,
+                carApproved,
+                isCarActive,
                 registrationDate,
                 carOwner: user,
             });
@@ -84,6 +86,61 @@ const createCar = async (req, res, next) => {
     } catch (error) {
         next(error)
         // console.log(error.message)
+    }
+};
+
+//Approve user
+const approveCar = async (req, res, next) => {
+    try {
+        const carActive = req.body.isCarActive;
+        console.log(carActive)
+        const id = req.params.id;
+        const car = await Car.findOne({ _id: id });
+        const admin = await User.findById(req.body.userId);
+
+        // console.log("User Approved", car);
+        // console.log("Admin Approved", admin);
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        } else if (admin.role === 'admin') {
+            car.isCarActive = carActive;
+            await car.save();
+            console.log(car)
+            return res.status(200).json({ message: `Car ${carActive} successfully` });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve Car' });
+        }
+    } catch (error) {
+        next(error)
+    }
+};
+
+//Active user
+const activeCar = async (req, res, next) => {
+    try {
+        const carActive = req.body.isCarActive;
+        const id = req.params.id;
+        const car = await Car.findOne({ _id: id });
+        const host = await User.findById(req.body.userId);
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        if (!host) {
+            return res.status(404).json({ message: 'Host not found' });
+        } else if (host.role === 'host') {
+            car.isCarActive = carActive;
+            await car.save();
+            return res.status(200).json({ message: `Car ${carActive} successfully` });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve Car' });
+        }
+    } catch (error) {
+        next(error)
     }
 };
 
@@ -445,18 +502,27 @@ const allHostCars = async (req, res, next) => {
         // const reservedCar = cars.tripStatus === "Start";
         const reservedCar = cars.filter(car => car.tripStatus === "Start").length;
 
+        const deActiveCar = cars.filter(car => car.isCarActive === "Deactive").length;
+
+        const pendingCar = cars.filter(car => car.isCarActive === "Pending").length;
+
+        const adminCancelCar = cars.filter(car => car.isCarActive === "Cancel").length;
+
         // const reservedCar = await Rent.countDocuments({
         //     carId: { $in: cars.map(car => car._id) }, // Filter by the cars retrieved for the host
         //     payment: 'Completed', // Adjust this condition based on your reservation status criteria
         // });
 
-        const activeCar = totalCar - reservedCar;
+        const activeCar = totalCar - (reservedCar + deActiveCar + pendingCar + adminCancelCar);
 
         return res.status(200).json({
             message: 'Host Cars retrieved successfully',
             totalCar,
             activeCar,
+            deActiveCar,
             reservedCar,
+            pendingCar,
+            adminCancelCar,
             cars,
             pagination: {
                 totalDocuments: totalCars,
@@ -619,4 +685,4 @@ const deleteById = async (req, res, next) => {
 
 
 
-module.exports = { createCar, allCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars }
+module.exports = { createCar, approveCar, allCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars, activeCar }

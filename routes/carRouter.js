@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, } = require('../controllers/carController');
+const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, approveCar, activeCar, } = require('../controllers/carController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -10,6 +10,12 @@ const upload = configureFileUpload();
 
 // Sign-up
 router.post('/add', upload, isValidUser, createCar);
+
+//Approve Car
+router.post('/approve-car/:id', isValidUser, approveCar);
+
+//Active Car
+router.post('/active-car/:id', isValidUser, activeCar);
 
 //All cars
 router.get('/all', allCars); //isValidUser

@@ -118,6 +118,10 @@ const payment = async (req, res, next) => {
         const stripeConnectAccountID = stripeConnectAccount.hostId.stripeConnectAccountId;
         console.log("Destination ID", stripeConnectAccountID);
 
+        if (!stripeConnectAccountID) {
+            return res.status(404).json({ message: 'Destination ID is not found for payment' });
+        }
+
         if (!rentRequest) {
             return res.status(404).json({ message: 'Request is not found for payment' });
         }

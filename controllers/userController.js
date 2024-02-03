@@ -124,7 +124,7 @@ const signUp = async (req, res, next) => {
     const bankInfo = req.body.bankInfo
     const address = req.body.address
 
-    // console.log((req.body.address))
+    console.log((req.body))
 
     try {
         const {
@@ -1030,7 +1030,6 @@ const adminInfo = async (req, res, next) => {
 const hostUserList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
-        console.log("object found", user);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -1048,6 +1047,7 @@ const hostUserList = async (req, res, next) => {
 
         // Find cars rented by the host user
         const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId');
+        console.log(rentedCars.length)
 
         // console.log(rentedCars)
 
@@ -1504,6 +1504,33 @@ const approveHost = async (req, res, next) => {
     }
 };
 
+//Approve user
+const approveUser = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findOne({ _id: id, role: 'user' });
+        const admin = await User.findById(req.body.userId);
+
+        console.log("User Approved", user);
+        console.log("Admin Approved", admin);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        } else if (admin.role === 'admin') {
+            user.approved = true;
+            await user.save();
+            return res.status(200).json({ message: 'User approved successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve User' });
+        }
+    } catch (error) {
+        next(error)
+    }
+};
+
 // Change Password
 const changePassword = async (req, res, next) => {
     const { email, currentPassword, newPassword, reTypedPassword } = req.body;
@@ -1737,5 +1764,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
+    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, approveUser, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };

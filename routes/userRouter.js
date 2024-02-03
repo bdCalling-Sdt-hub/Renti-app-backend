@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut, adminInfo, allTrushUsers, carSoftDeleteById, userSignUp } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut, adminInfo, allTrushUsers, carSoftDeleteById, userSignUp, approveUser } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -59,6 +59,9 @@ router.post('/update/:id', upload, isValidUser, updateUser);
 
 //Approve host
 router.post('/approve/:id', isValidUser, approveHost);
+
+//Approve user
+router.post('/approve-user/:id', isValidUser, approveUser);
 
 // change password
 router.post('/change-password', changePassword);
