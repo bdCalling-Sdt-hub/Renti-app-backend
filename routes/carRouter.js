@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, approveCar, activeCar, } = require('../controllers/carController');
+const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, approveCar, activeCar, allReqCars, } = require('../controllers/carController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -19,6 +19,9 @@ router.post('/active-car/:id', isValidUser, activeCar);
 
 //All cars
 router.get('/all', allCars); //isValidUser
+
+//All cars
+router.get('/all-req', allReqCars); 
 
 //luxury Cars
 router.get('/luxury', luxuryCars); //isValidUser,

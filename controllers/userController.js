@@ -1152,6 +1152,102 @@ const allUserInfo = async (req, res, next) => {
 };
 
 // All User With Trip Amount
+// const allUsersWithTripAmount = async (req, res, next) => {
+//     try {
+//         const admin = await User.findOne({ _id: req.body.userId });
+
+//         if (!admin || admin.role !== 'admin') {
+//             return res.status(403).json({ message: 'You are not authorized to access this data' });
+//         }
+
+//         // const search = req.query.search || '';
+//         const page = Number(req.query.page) || 1;
+//         const limit = Number(req.query.limit) || 10;
+
+//         // const filter = {
+//         //     role: "user",
+//         //     // fullName: { $regex: new RegExp('.*' + search + '.*', 'i') },
+//         //     // email: { $regex: new RegExp('.*' + search + '.*', 'i') }
+//         //     $or: [
+//         //         { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//         //         { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//         //     ],
+//         // };
+
+//         // ----------------------------------------------------------------
+//         const allHostsQuery = User.find({ role: "user" });
+
+
+//         let searchFilter;
+//         const search = req.query.search || '';
+//         if (search) {
+//             console.log(search)
+//             searchFilter = {
+//                 $or: [
+//                     { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//                     { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//                     // { phoneNumber: { $regex: new RegExp('.*' + search + '.*', 'i') } }
+//                 ]
+//             };
+
+//             allHostsQuery.and([searchFilter]);
+//         }
+
+//         const approve = req.query.approve
+//         const isBanned = req.query.isBanned
+
+//         let allHosts = await allHostsQuery;
+
+//         if (approve === "true" && isBanned === "false") {
+//             allHosts = await User.find({ role: "user", approved: true, ...searchFilter, isBanned: false });
+//             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+//             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+//         }
+//         if (approve === "false") {
+//             allHosts = await User.find({ role: "user", approved: false, ...searchFilter });
+//             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+//             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+//         }
+
+//         // ------
+
+
+//         const totalCount = await User.countDocuments(searchFilter);
+//         const totalPages = Math.ceil(totalCount / limit);
+//         const startIndex = (page - 1) * limit;
+//         const endIndex = page * limit;
+
+//         const allUsers = await User.find(searchFilter).skip(startIndex).limit(limit).sort({ createdAt: -1 });
+//         console.log("object", allUsers);
+
+//         const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
+//             const payments = await Payment.find({ userId: user._id });
+//             const totalTripAmount = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
+//             return {
+//                 totalTripAmount: totalTripAmount,
+//                 user
+//             };
+//         }));
+
+//         res.status(200).json({
+//             message: "User Data Retrieved Successfully",
+//             usersWithTripAmount,
+//             pagination: {
+//                 totalUsers: totalCount,
+//                 totalPages: totalPages,
+//                 currentPage: page,
+//                 previousPage: page - 1 > 0 ? page - 1 : null,
+//                 nextPage: page + 1 <= totalPages ? page + 1 : null,
+//             }
+//         });
+
+//     } catch (error) {
+//         next(error)
+//     }
+// };
+
 const allUsersWithTripAmount = async (req, res, next) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
@@ -1160,29 +1256,45 @@ const allUsersWithTripAmount = async (req, res, next) => {
             return res.status(403).json({ message: 'You are not authorized to access this data' });
         }
 
-        const search = req.query.search || '';
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
 
-        const filter = {
-            role: "user",
-            // fullName: { $regex: new RegExp('.*' + search + '.*', 'i') },
-            // email: { $regex: new RegExp('.*' + search + '.*', 'i') }
-            $or: [
-                { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-                { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-            ],
-        };
+        const allUsersQuery = User.find({ role: "user" });
 
-        const totalCount = await User.countDocuments(filter);
+        let searchFilter;
+        const search = req.query.search || '';
+        if (search) {
+            searchFilter = {
+                $or: [
+                    { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                    { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                ]
+            };
+
+            allUsersQuery.and([searchFilter]);
+        }
+
+        const approve = req.query.approve;
+        const isBanned = req.query.isBanned;
+
+        let allUsers = await allUsersQuery;
+
+        if (approve === "true" && isBanned === "false") {
+            allUsers = await User.find({ role: "user", approved: true, ...searchFilter, isBanned: false });
+        }
+
+        if (approve === "false") {
+            allUsers = await User.find({ role: "user", approved: false, ...searchFilter });
+        }
+
+        const totalCount = await User.countDocuments(searchFilter);
         const totalPages = Math.ceil(totalCount / limit);
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
 
-        const allUsers = await User.find(filter).skip(startIndex).limit(limit).sort({ createdAt: -1 });
-        console.log("object", allUsers);
+        const paginatedUsers = allUsers.slice(startIndex, endIndex);
 
-        const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
+        const usersWithTripAmount = await Promise.all(paginatedUsers.map(async user => {
             const payments = await Payment.find({ userId: user._id });
             const totalTripAmount = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
             return {
@@ -1195,8 +1307,10 @@ const allUsersWithTripAmount = async (req, res, next) => {
             message: "User Data Retrieved Successfully",
             usersWithTripAmount,
             pagination: {
-                totalUsers: totalCount,
-                totalPages: totalPages,
+                totalUsers: allUsers.length,
+                totalPage: Math.ceil(allUsers.length / limit),
+                // totalUsers: totalCount,
+                // totalPages: totalPages,
                 currentPage: page,
                 previousPage: page - 1 > 0 ? page - 1 : null,
                 nextPage: page + 1 <= totalPages ? page + 1 : null,
@@ -1204,9 +1318,10 @@ const allUsersWithTripAmount = async (req, res, next) => {
         });
 
     } catch (error) {
-        next(error)
+        next(error);
     }
 };
+
 
 //Banned users
 const bannedUsers = async (req, res, next) => {
@@ -1483,7 +1598,9 @@ const blockedUsers = async (req, res, next) => {
 const approveHost = async (req, res, next) => {
     try {
         const id = req.params.id;
+        console.log(id)
         const user = await User.findOne({ _id: id, role: 'host' });
+        console.log(user)
         const admin = await User.findById(req.body.userId);
 
         if (!user) {
