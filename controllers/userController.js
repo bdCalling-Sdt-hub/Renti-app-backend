@@ -910,7 +910,7 @@ const allHosts = async (req, res, next) => {
             return res.status(404).json({ message: 'You are not an admin' });
         }
 
-        const allHostsQuery = User.find({ role: "host" });
+        const allHostsQuery = User.find({ role: "host" }).sort({ createdAt: -1 });
 
 
         let searchFilter;
@@ -1046,7 +1046,7 @@ const hostUserList = async (req, res, next) => {
         const ownedCars = await Car.find({ carOwner: user._id });
 
         // Find cars rented by the host user
-        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId');
+        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId').sort({ createdAt: -1 });
         console.log(rentedCars.length)
 
         // console.log(rentedCars)
@@ -1103,7 +1103,7 @@ const allUserInfo = async (req, res, next) => {
             return res.status(404).json({ message: 'You are not an admin' });
         }
 
-        const allUsersQuery = User.find({ role: "user" });
+        const allUsersQuery = User.find({ role: "user" }).sort({ createdAt: -1 });
 
         const search = req.query.search || '';
         if (search) {
@@ -1259,7 +1259,7 @@ const allUsersWithTripAmount = async (req, res, next) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
 
-        const allUsersQuery = User.find({ role: "user" });
+        const allUsersQuery = User.find({ role: "user" }).sort({ createdAt: -1 });
 
         let searchFilter;
         const search = req.query.search || '';

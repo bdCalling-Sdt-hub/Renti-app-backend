@@ -153,9 +153,8 @@ const allCars = async (req, res, next) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
         const searchRegExp = new RegExp('.*' + search + '.*', 'i');
-        const carActive = req.query.isCarActive;
         const filter = {
-            // isCarActive: carActive,
+            isCarActive: "Active",
             $or: [
                 { carModelName: { $regex: searchRegExp } },
                 { carDescription: { $regex: searchRegExp } },
@@ -280,6 +279,7 @@ const luxuryCars = async (req, res, next) => {
         const filter = {
             $and: [ // Use $and to combine multiple conditions
                 {
+                    isCarActive: "Active",
                     $or: [
                         { carModelName: { $regex: searchRegExp } },
                         { carDescription: { $regex: searchRegExp } },
@@ -350,6 +350,7 @@ const offerCars = async (req, res, next) => {
         const filter = {
             $and: [ // Use $and to combine multiple conditions
                 {
+                    isCarActive: "Active",
                     $or: [
                         { carModelName: { $regex: searchRegExp } },
                         { carDescription: { $regex: searchRegExp } },
