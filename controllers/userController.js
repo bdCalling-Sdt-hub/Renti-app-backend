@@ -637,7 +637,7 @@ const verifyEmail = async (req, res, next) => {
             await user.save();
             res.status(200).json({ message: 'Email veriified successfully' });
         } else {
-            res.status(401).json({ message: 'Failed to verify' });
+            res.status(410).json({ message: 'Failed to verify' });
         };
     } catch (error) {
         next(error)

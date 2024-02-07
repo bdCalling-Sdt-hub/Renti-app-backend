@@ -164,6 +164,68 @@ const allCars = async (req, res, next) => {
         }
         const perMittedUser = await User.findById(req.body.userId);
         const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ createdAt: -1 });
+        console.log(cars.length)
+        const count = await Car.countDocuments(filter);
+
+
+        const totalCar = count;
+
+        // const reservedCar = await Rent.countDocuments({ tripStatus: "Completed" });
+        const reservedCar = await Car.countDocuments({ tripStatus: "Start" });
+
+        const activeCar = totalCar - reservedCar
+
+        const user = await User.findById(req.body.userId);
+        if (!cars) {
+            res.status(404).json({ message: 'Car not found' });
+        }
+
+        // if (!user) {
+        //     res.status(404).json({ message: 'User not found' });
+        // } else 
+        // if (perMittedUser.role === 'admin' || perMittedUser.role === 'user') {
+        res.status(200).json({
+            totalCar,
+            activeCar,
+            reservedCar,
+            cars,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+            }
+        });
+        // } else {
+        //     res.status(501).json({ message: 'You are not authorized' });
+        // }
+
+    } catch (error) {
+        next(error)
+    }
+};
+
+//All cars seen by user and admin
+const allCarsKyc = async (req, res, next) => {
+    try {
+        //Search the users
+        const userTypes = req.params.filter;
+        const search = req.query.search || '';
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const searchRegExp = new RegExp('.*' + search + '.*', 'i');
+        const filter = {
+            $or: [
+                { carModelName: { $regex: searchRegExp } },
+                { carDescription: { $regex: searchRegExp } },
+                { carColor: { $regex: searchRegExp } },
+                { gearType: { $regex: searchRegExp } },
+            ]
+        }
+        const perMittedUser = await User.findById(req.body.userId);
+        const cars = await Car.find(filter).limit(limit).skip((page - 1) * limit).populate('carOwner', '').sort({ createdAt: -1 });
+        console.log(cars.length)
         const count = await Car.countDocuments(filter);
 
 
@@ -751,4 +813,4 @@ const deleteById = async (req, res, next) => {
 
 
 
-module.exports = { createCar, approveCar, allCars, allReqCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars, activeCar }
+module.exports = { createCar, approveCar, allCars, allCarsKyc, allReqCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars, activeCar }
