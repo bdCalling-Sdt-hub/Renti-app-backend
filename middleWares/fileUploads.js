@@ -22,11 +22,11 @@ const configureFileUpload = () => {
     const fileFilter = (req, file, cb) => {
         if (file.fieldname === 'image') {
 
-            file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'
+            file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/heic'
                 ? cb(null, true)
                 : cb(null, false);
         } else if (file.fieldname === 'KYC') {
-            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'application/x-x509-ca-cert' || file.mimetype === 'application/octet-stream' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'
+            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'application/x-x509-ca-cert' || file.mimetype === 'application/octet-stream' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/heic'
                 ? cb(null, true)
                 : cb(null, false);
         }
