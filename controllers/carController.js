@@ -28,7 +28,7 @@ const createCar = async (req, res, next) => {
 
         if (req.files && req.files.image) {
             req.files.image.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
                 publicImageUrl.push(publicFileUrl);
             });
         }

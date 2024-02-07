@@ -9,7 +9,8 @@ const configureFileUpload = () => {
                 file.mimetype === 'image/png'
             ) {
                 cb(null, path.join(__dirname, '../public/uploads/image'));
-            } else {
+            }
+            else {
                 cb(null, path.join(__dirname, '../public/uploads/kyc'));
             }
         },
