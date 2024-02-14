@@ -13,6 +13,7 @@ const Review = require("../models/Review");
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
+const { createFileDetails } = require("../helpers/image.helper");
 
 
 // Define a map to store user timers for sign up requests
@@ -40,7 +41,8 @@ const userSignUp = async (req, res, next) => {
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
                 // Add public/uploads link to each KYC file
-                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const kycLink = createFileDetails('kyc', file.filename)
                 kycFileNames.push(kycLink);
             });
         }
@@ -51,7 +53,8 @@ const userSignUp = async (req, res, next) => {
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
-            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            imageFileName = createFileDetails('image', req.files.image[0].filename)
         }
 
         // Create the user in the database
@@ -157,7 +160,8 @@ const signUp = async (req, res, next) => {
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
                 // Add public/uploads link to each KYC file
-                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const kycLink = createFileDetails('kyc', file.filename)
                 kycFileNames.push(kycLink);
             });
         }
@@ -166,7 +170,8 @@ const signUp = async (req, res, next) => {
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
-            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            imageFileName = createFileDetails('image', req.files.image[0].filename)
         }
 
 
@@ -1517,12 +1522,13 @@ const updateUser = async (req, res, next) => {
 
         // Handle updating image and KYC separately
         if (req.files && req.files.image) {
-            const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            const publicFileUrl = createFileDetails('image', req.files.image[0].filename)
             updatedUser.image = publicFileUrl;
         }
 
         if (req.files && req.files.KYC) {
-            const kycFileNames = req.files.KYC.map(file => `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`);
+            const kycFileNames = req.files.KYC.map(file => createFileDetails('kyc', file.filename));
             updatedUser.KYC = kycFileNames;
         }
 

@@ -4,6 +4,7 @@ const { createCarService, getCarsService, getById, update, remove, getsSearchByN
 const User = require("../models/User");
 const Rent = require("../models/Rent");
 const { addNotification, getAllNotification } = require("./notificationController");
+const { createFileDetails } = require("../helpers/image.helper");
 
 
 //Add car
@@ -19,7 +20,8 @@ const createCar = async (req, res, next) => {
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const publicFileUrl = createFileDetails('kyc', file.filename);
                 kycFileNames.push(publicFileUrl);
             });
         }
@@ -28,7 +30,8 @@ const createCar = async (req, res, next) => {
 
         if (req.files && req.files.image) {
             req.files.image.forEach((file) => {
-                const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const publicFileUrl = createFileDetails('kyc', file.filename)
                 publicImageUrl.push(publicFileUrl);
             });
         }
@@ -734,14 +737,16 @@ const updateById = async (req, res, next) => {
         if (req.files) {
             if (req.files.KYC) {
                 req.files.KYC.forEach((file) => {
-                    const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                    // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                    const publicFileUrl = createFileDetails('kyc', file.filename)
                     kycFileNames.push(publicFileUrl);
                 });
             }
 
             if (req.files.image) {
                 req.files.image.forEach((file) => {
-                    const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                    // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${file.filename}`;
+                    const publicFileUrl = createFileDetails('image', file.filename)
                     publicImageUrl.push(publicFileUrl);
                 });
             }
@@ -811,6 +816,122 @@ const deleteById = async (req, res, next) => {
     }
 };
 
+//Banned users
+const bannedCar = async (req, res, next) => {
+    try {
+        // Step 1: Fetch the admin and user information
+        const { isCarActive } = req.body;
+        console.log(isCarActive);
+        const adminId = req.body.userId;
+        const admin = await User.findOne({ _id: adminId });
+        const carId = req.params.id;
+        const car = await Car.findById(carId);
+        console.log(car)
+
+        // Step 2: Check if admin and user exist
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        // // Step 3: Check if user is already banned
+        // if (user.isBanned === true) {
+        //     return res.status(403).json({ message: 'User is already banned' });
+        // }
+
+        // Step 4: Check if the requester is an admin
+        if (admin.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized' });
+        }
+
+        if (isCarActive === "approve") {
+            car.isCarActive = "false";
+            await car.save();
+        } else if (isCarActive === "cancel") {
+            car.isCarActive = 'true';
+            await car.save();
+        }
+        else if (isCarActive === "trash") {
+            car.isCarActive = 'trash';
+            // car.approved = true;
+            await car.save();
+        }
+        else if (isCarActive === "Active") {
+            car.isCarActive = 'Active';
+            // car.approved = true;
+            await car.save();
+        }
+        else if (isCarActive === "cancel" && isCarActive === "approve") {
+            car.isBanned = 'false';
+            await car.save();
+        }
+
+        // // Step 5: Ban the user
 
 
-module.exports = { createCar, approveCar, allCars, allCarsKyc, allReqCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars, activeCar }
+
+
+        // // Step 6: Respond with success message
+        res.status(200).json({ message: `Car ${isCarActive} Successfully` });
+    } catch (error) {
+        // Step 7: Handle errors
+        next(error)
+    }
+};
+
+
+// All Banned Users
+const allBannedCars = async (req, res, next) => {
+    try {
+        const bannedCars = await Car.find({ isCarActive: "true" });
+        res.status(200).json({ message: 'Banned Car Retrieve Successfully', bannedCars });
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+// All Trush Users
+const allTrushCar = async (req, res, next) => {
+    try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        // Calculate the skip value based on the page number and limit
+        // const skip = (page - 1) * limit;
+
+        const trashCar = await Car.find({ isCarActive: "trash" })
+            .limit(limit)
+            .skip((page - 1) * limit)
+
+        const count = await Car.countDocuments(Car.find({ isCarActive: "trash" }));
+        console.log(count)
+        console.log(trashCar.length)
+
+        res.status(200).json({
+            message: 'Trash Car Retrieve Successfully',
+            trashCar,
+            pagination: {
+                totalDocuments: count,
+                totalPage: Math.ceil(count / limit),
+                currentPage: page,
+                previousPage: page - 1 > 0 ? page - 1 : null,
+                nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+                // totalDocuments: count,
+                // currentPage: page,
+                // totalPages: Math.ceil(count / limit), // Calculate total pages based on the result count and limit
+                // totalUsers: trashUsers.length,
+                // limit: limit
+            }
+
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+module.exports = { createCar, approveCar, allCars, allCarsKyc, allReqCars, getCarsById, updateById, deleteById, allHostCars, offerCars, luxuryCars, activeCar, bannedCar, allBannedCars, allTrushCar }

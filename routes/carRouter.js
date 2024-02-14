@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, approveCar, activeCar, allReqCars, allCarsKyc, } = require('../controllers/carController');
+const { createCar, getCars, getCarsById, updateById, deleteById, searchByName, allCars, allHostCars, offerCars, luxuryCars, approveCar, activeCar, allReqCars, allCarsKyc, bannedCar, allBannedCars, allTrushCar, } = require('../controllers/carController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -16,6 +16,9 @@ router.post('/approve-car/:id', isValidUser, approveCar);
 
 //Active Car
 router.post('/active-car/:id', isValidUser, activeCar);
+
+//Trash car
+router.get('/trash', isValidUser, allTrushCar);
 
 //All cars
 router.get('/all', allCars); //isValidUser
@@ -41,6 +44,14 @@ router.post('/update/:id', upload, isValidUser, updateById);
 
 //Delete car
 router.delete('/delete/:id', isValidUser, deleteById);
+
+//Banned Car
+router.post('/banned/:id', isValidUser, bannedCar);
+
+//All Banned cars
+router.get('/banned/all', allBannedCars);
+
+
 
 
 
