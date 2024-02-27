@@ -36,7 +36,7 @@ const userSignUp = async (req, res, next) => {
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
         const kycFileNames = [];
-       
+
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
@@ -917,7 +917,7 @@ const allHosts = async (req, res, next) => {
             return res.status(404).json({ message: 'You are not an admin' });
         }
 
-        const allHostsQuery = await User.find({ role: "host" }).sort({ createdAt: -1 });
+        const allHostsQuery = await User.find({ role: "host", emailVerified: true }).sort({ createdAt: -1 });
         console.log("defdrfgtrtgre", allHostsQuery)
 
 
@@ -938,8 +938,10 @@ const allHosts = async (req, res, next) => {
 
         const approve = req.query.approve
         const isBanned = req.query.isBanned
+        // const emailVerified = req.query.emailVerified
 
         let allHosts = allHostsQuery;
+
 
         if (approve === "true" && isBanned === "false") {
             allHosts = await User.find({ role: "host", approved: true, ...searchFilter, isBanned: false });
@@ -953,6 +955,8 @@ const allHosts = async (req, res, next) => {
 
             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
         }
+
+
 
 
         const rentList = await Rent.find({});
@@ -977,18 +981,13 @@ const allHosts = async (req, res, next) => {
 
         const paginatedHosts = allHosts.slice(startIndex, endIndex);
 
+
         let hostData;
         hostData = paginatedHosts.map(host => ({
             carCount: hostCarCounts[host._id] || 0,
             host,
-
         }));
 
-
-        hostData = paginatedHosts.map(host => ({
-            carCount: hostCarCounts[host._id] || 0,
-            host,
-        }));
 
         res.status(200).json({
             message: "Host Data Retrieved Successfully",
