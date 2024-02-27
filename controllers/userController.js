@@ -35,7 +35,7 @@ const userSignUp = async (req, res, next) => {
         const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
         const kycFileNames = [];
-        console.log(req.files.KYC)
+       
 
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
@@ -44,6 +44,8 @@ const userSignUp = async (req, res, next) => {
                 kycFileNames.push(kycLink);
             });
         }
+
+        console.log(req.files.KYC)
 
         let imageFileName = '';
 
@@ -1517,7 +1519,7 @@ const changePassword = async (req, res, next) => {
         const passwordMatch = await bcrypt.compare(currentPassword, user.password);
 
         if (!passwordMatch) {
-            return res.status(401).json({ message: 'Current password is incorrect' });
+            return res.status(402).json({ message: 'Current password is incorrect' });
         }
 
         if (newPassword !== reTypedPassword) {
