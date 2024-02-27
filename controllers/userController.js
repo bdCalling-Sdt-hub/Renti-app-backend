@@ -13,6 +13,7 @@ const Review = require("../models/Review");
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
+const { createFileDetails } = require("../helpers/image.helper");
 
 
 // Define a map to store user timers for sign up requests
@@ -40,7 +41,8 @@ const userSignUp = async (req, res, next) => {
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
                 // Add public/uploads link to each KYC file
-                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const kycLink = createFileDetails('kyc', file.filename)
                 kycFileNames.push(kycLink);
             });
         }
@@ -53,7 +55,8 @@ const userSignUp = async (req, res, next) => {
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
-            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            imageFileName = createFileDetails('image', req.files.image[0].filename)
         }
 
         // Create the user in the database
@@ -126,7 +129,7 @@ const signUp = async (req, res, next) => {
     const bankInfo = req.body.bankInfo
     const address = req.body.address
 
-    // console.log((req.body.address))
+    console.log((req.body))
 
     try {
         const {
@@ -159,7 +162,8 @@ const signUp = async (req, res, next) => {
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
                 // Add public/uploads link to each KYC file
-                const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                // const kycLink = `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`;
+                const kycLink = createFileDetails('kyc', file.filename)
                 kycFileNames.push(kycLink);
             });
         }
@@ -168,7 +172,8 @@ const signUp = async (req, res, next) => {
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
-            imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            imageFileName = createFileDetails('image', req.files.image[0].filename)
         }
 
 
@@ -639,7 +644,7 @@ const verifyEmail = async (req, res, next) => {
             await user.save();
             res.status(200).json({ message: 'Email veriified successfully' });
         } else {
-            res.status(401).json({ message: 'Failed to verify' });
+            res.status(410).json({ message: 'Failed to verify' });
         };
     } catch (error) {
         next(error)
@@ -912,7 +917,8 @@ const allHosts = async (req, res, next) => {
             return res.status(404).json({ message: 'You are not an admin' });
         }
 
-        const allHostsQuery = User.find({ role: "host" });
+        const allHostsQuery = await User.find({ role: "host" }).sort({ createdAt: -1 });
+        console.log("defdrfgtrtgre", allHostsQuery)
 
 
         let searchFilter;
@@ -933,7 +939,7 @@ const allHosts = async (req, res, next) => {
         const approve = req.query.approve
         const isBanned = req.query.isBanned
 
-        let allHosts = await allHostsQuery;
+        let allHosts = allHostsQuery;
 
         if (approve === "true" && isBanned === "false") {
             allHosts = await User.find({ role: "host", approved: true, ...searchFilter, isBanned: false });
@@ -977,6 +983,7 @@ const allHosts = async (req, res, next) => {
             host,
 
         }));
+
 
         hostData = paginatedHosts.map(host => ({
             carCount: hostCarCounts[host._id] || 0,
@@ -1032,7 +1039,6 @@ const adminInfo = async (req, res, next) => {
 const hostUserList = async (req, res, next) => {
     try {
         const user = await User.findById(req.body.userId);
-        console.log("object found", user);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -1049,7 +1055,8 @@ const hostUserList = async (req, res, next) => {
         const ownedCars = await Car.find({ carOwner: user._id });
 
         // Find cars rented by the host user
-        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId');
+        const rentedCars = await Rent.find({ hostId: user._id }).populate('userId').populate('carId').sort({ createdAt: -1 });
+        console.log(rentedCars.length)
 
         // console.log(rentedCars)
 
@@ -1105,7 +1112,7 @@ const allUserInfo = async (req, res, next) => {
             return res.status(404).json({ message: 'You are not an admin' });
         }
 
-        const allUsersQuery = User.find({ role: "user" });
+        const allUsersQuery = User.find({ role: "user" }).sort({ createdAt: -1 });
 
         const search = req.query.search || '';
         if (search) {
@@ -1154,6 +1161,102 @@ const allUserInfo = async (req, res, next) => {
 };
 
 // All User With Trip Amount
+// const allUsersWithTripAmount = async (req, res, next) => {
+//     try {
+//         const admin = await User.findOne({ _id: req.body.userId });
+
+//         if (!admin || admin.role !== 'admin') {
+//             return res.status(403).json({ message: 'You are not authorized to access this data' });
+//         }
+
+//         // const search = req.query.search || '';
+//         const page = Number(req.query.page) || 1;
+//         const limit = Number(req.query.limit) || 10;
+
+//         // const filter = {
+//         //     role: "user",
+//         //     // fullName: { $regex: new RegExp('.*' + search + '.*', 'i') },
+//         //     // email: { $regex: new RegExp('.*' + search + '.*', 'i') }
+//         //     $or: [
+//         //         { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//         //         { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//         //     ],
+//         // };
+
+//         // ----------------------------------------------------------------
+//         const allHostsQuery = User.find({ role: "user" });
+
+
+//         let searchFilter;
+//         const search = req.query.search || '';
+//         if (search) {
+//             console.log(search)
+//             searchFilter = {
+//                 $or: [
+//                     { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//                     { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+//                     // { phoneNumber: { $regex: new RegExp('.*' + search + '.*', 'i') } }
+//                 ]
+//             };
+
+//             allHostsQuery.and([searchFilter]);
+//         }
+
+//         const approve = req.query.approve
+//         const isBanned = req.query.isBanned
+
+//         let allHosts = await allHostsQuery;
+
+//         if (approve === "true" && isBanned === "false") {
+//             allHosts = await User.find({ role: "user", approved: true, ...searchFilter, isBanned: false });
+//             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+//             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+//         }
+//         if (approve === "false") {
+//             allHosts = await User.find({ role: "user", approved: false, ...searchFilter });
+//             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
+
+//             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
+//         }
+
+//         // ------
+
+
+//         const totalCount = await User.countDocuments(searchFilter);
+//         const totalPages = Math.ceil(totalCount / limit);
+//         const startIndex = (page - 1) * limit;
+//         const endIndex = page * limit;
+
+//         const allUsers = await User.find(searchFilter).skip(startIndex).limit(limit).sort({ createdAt: -1 });
+//         console.log("object", allUsers);
+
+//         const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
+//             const payments = await Payment.find({ userId: user._id });
+//             const totalTripAmount = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
+//             return {
+//                 totalTripAmount: totalTripAmount,
+//                 user
+//             };
+//         }));
+
+//         res.status(200).json({
+//             message: "User Data Retrieved Successfully",
+//             usersWithTripAmount,
+//             pagination: {
+//                 totalUsers: totalCount,
+//                 totalPages: totalPages,
+//                 currentPage: page,
+//                 previousPage: page - 1 > 0 ? page - 1 : null,
+//                 nextPage: page + 1 <= totalPages ? page + 1 : null,
+//             }
+//         });
+
+//     } catch (error) {
+//         next(error)
+//     }
+// };
+
 const allUsersWithTripAmount = async (req, res, next) => {
     try {
         const admin = await User.findOne({ _id: req.body.userId });
@@ -1162,29 +1265,45 @@ const allUsersWithTripAmount = async (req, res, next) => {
             return res.status(403).json({ message: 'You are not authorized to access this data' });
         }
 
-        const search = req.query.search || '';
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
 
-        const filter = {
-            role: "user",
-            // fullName: { $regex: new RegExp('.*' + search + '.*', 'i') },
-            // email: { $regex: new RegExp('.*' + search + '.*', 'i') }
-            $or: [
-                { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-                { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
-            ],
-        };
+        const allUsersQuery = User.find({ role: "user" }).sort({ createdAt: -1 });
 
-        const totalCount = await User.countDocuments(filter);
+        let searchFilter;
+        const search = req.query.search || '';
+        if (search) {
+            searchFilter = {
+                $or: [
+                    { fullName: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                    { email: { $regex: new RegExp('.*' + search + '.*', 'i') } },
+                ]
+            };
+
+            allUsersQuery.and([searchFilter]);
+        }
+
+        const approve = req.query.approve;
+        const isBanned = req.query.isBanned;
+
+        let allUsers = await allUsersQuery;
+
+        if (approve === "true" && isBanned === "false") {
+            allUsers = await User.find({ role: "user", approved: true, ...searchFilter, isBanned: false });
+        }
+
+        if (approve === "false") {
+            allUsers = await User.find({ role: "user", approved: false, ...searchFilter });
+        }
+
+        const totalCount = await User.countDocuments(searchFilter);
         const totalPages = Math.ceil(totalCount / limit);
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
 
-        const allUsers = await User.find(filter).skip(startIndex).limit(limit).sort({ createdAt: -1 });
-        console.log("object", allUsers);
+        const paginatedUsers = allUsers.slice(startIndex, endIndex);
 
-        const usersWithTripAmount = await Promise.all(allUsers.map(async user => {
+        const usersWithTripAmount = await Promise.all(paginatedUsers.map(async user => {
             const payments = await Payment.find({ userId: user._id });
             const totalTripAmount = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
             return {
@@ -1197,8 +1316,10 @@ const allUsersWithTripAmount = async (req, res, next) => {
             message: "User Data Retrieved Successfully",
             usersWithTripAmount,
             pagination: {
-                totalUsers: totalCount,
-                totalPages: totalPages,
+                totalUsers: allUsers.length,
+                totalPage: Math.ceil(allUsers.length / limit),
+                // totalUsers: totalCount,
+                // totalPages: totalPages,
                 currentPage: page,
                 previousPage: page - 1 > 0 ? page - 1 : null,
                 nextPage: page + 1 <= totalPages ? page + 1 : null,
@@ -1206,9 +1327,10 @@ const allUsersWithTripAmount = async (req, res, next) => {
         });
 
     } catch (error) {
-        next(error)
+        next(error);
     }
 };
+
 
 //Banned users
 const bannedUsers = async (req, res, next) => {
@@ -1402,12 +1524,13 @@ const updateUser = async (req, res, next) => {
 
         // Handle updating image and KYC separately
         if (req.files && req.files.image) {
-            const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
+            const publicFileUrl = createFileDetails('image', req.files.image[0].filename)
             updatedUser.image = publicFileUrl;
         }
 
         if (req.files && req.files.KYC) {
-            const kycFileNames = req.files.KYC.map(file => `${req.protocol}://${req.get('host')}/public/uploads/kyc/${file.filename}`);
+            const kycFileNames = req.files.KYC.map(file => createFileDetails('kyc', file.filename));
             updatedUser.KYC = kycFileNames;
         }
 
@@ -1485,7 +1608,9 @@ const blockedUsers = async (req, res, next) => {
 const approveHost = async (req, res, next) => {
     try {
         const id = req.params.id;
+        console.log(id)
         const user = await User.findOne({ _id: id, role: 'host' });
+        console.log(user)
         const admin = await User.findById(req.body.userId);
 
         if (!user) {
@@ -1500,6 +1625,33 @@ const approveHost = async (req, res, next) => {
             return res.status(200).json({ message: 'Host approved successfully' });
         } else {
             return res.status(403).json({ message: 'You do not have permission to approve Host' });
+        }
+    } catch (error) {
+        next(error)
+    }
+};
+
+//Approve user
+const approveUser = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findOne({ _id: id, role: 'user' });
+        const admin = await User.findById(req.body.userId);
+
+        console.log("User Approved", user);
+        console.log("Admin Approved", admin);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
+        } else if (admin.role === 'admin') {
+            user.approved = true;
+            await user.save();
+            return res.status(200).json({ message: 'User approved successfully' });
+        } else {
+            return res.status(403).json({ message: 'You do not have permission to approve User' });
         }
     } catch (error) {
         next(error)
@@ -1609,7 +1761,7 @@ const verifyOneTimeCode = async (req, res, next) => {
             await user.save();
             res.status(200).json({ success: true, message: 'User verified successfully' });
         } else {
-            res.status(400).json({ success: false, message: 'Failed to verify user' });
+            res.status(410).json({ success: false, message: 'Failed to verify user' });
         }
     } catch (error) {
         next(error)
@@ -1739,5 +1891,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
+    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, approveUser, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };
