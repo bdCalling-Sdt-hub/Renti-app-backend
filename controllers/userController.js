@@ -701,10 +701,185 @@ const signIn = async (req, res, next) => {
         // Find the user by email
         const user = await User.findOne({ email });
 
-        console.log("object", user)
 
 
         if (!user) {
+            return res.status(401).json({ message: 'Authentication failed' });
+        }
+
+        // Compare the provided password with the stored hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Authentication failed' });
+        }
+
+        // Checking banned user
+        if (user.isBanned === "true") {
+            return res.status(403).json({ message: 'User is banned! Please contact the authority' });
+        }
+
+
+
+        let activityId = null
+        if (user.role === 'admin') {
+            function extractDeviceModel(userAgent) {
+                const regex = /\(([^)]+)\)/;
+                const matches = userAgent.match(regex);
+
+                if (matches && matches.length >= 2) {
+                    return matches[1];
+                } else {
+                    return 'Unknown';
+                }
+            }
+
+            const userA = req.headers['user-agent'];
+
+            const deviceModel = extractDeviceModel(userA);
+
+
+            function getBrowserInfo(userAgent) {
+                const ua = userAgent.toLowerCase();
+
+                if (ua.includes('firefox')) {
+                    return 'Firefox';
+                } else if (ua.includes('edg')) {
+                    return 'Edge';
+                } else if (ua.includes('safari') && !ua.includes('chrome')) {
+                    return 'Safari';
+                } else if (ua.includes('opr') || ua.includes('opera')) {
+                    return 'Opera';
+                } else if (ua.includes('chrome')) {
+                    return 'Chrome';
+                } else {
+                    return 'Unknown';
+                }
+            }
+            // const deviceNameOrModel = req.headers['user-agent'];
+            const userAgent = req.get('user-agent');
+            const browser = getBrowserInfo(userAgent);
+            const activity = await Activity.create({
+                operatingSystem: deviceModel,
+                browser,
+                userId: user._id
+            });
+            console.log(activity)
+            activityId = activity._id
+        }
+
+        //Token, set the Cokkie
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+
+
+        //Success response
+        res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
+
+
+
+    } catch (error) {
+        next(error)
+    }
+};
+
+const userSignIn = async (req, res, next) => {
+    try {
+        // Get email and password from req.body
+        const { email, password } = req.body;
+
+        // Find the user by email
+        const user = await User.findOne({ email });
+
+
+
+        if (user?.role !== 'user') {
+            return res.status(401).json({ message: 'Authentication failed' });
+        }
+
+        // Compare the provided password with the stored hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Authentication failed' });
+        }
+
+        // Checking banned user
+        if (user.isBanned === "true") {
+            return res.status(403).json({ message: 'User is banned! Please contact the authority' });
+        }
+
+
+
+        let activityId = null
+        if (user.role === 'admin') {
+            function extractDeviceModel(userAgent) {
+                const regex = /\(([^)]+)\)/;
+                const matches = userAgent.match(regex);
+
+                if (matches && matches.length >= 2) {
+                    return matches[1];
+                } else {
+                    return 'Unknown';
+                }
+            }
+
+            const userA = req.headers['user-agent'];
+
+            const deviceModel = extractDeviceModel(userA);
+
+
+            function getBrowserInfo(userAgent) {
+                const ua = userAgent.toLowerCase();
+
+                if (ua.includes('firefox')) {
+                    return 'Firefox';
+                } else if (ua.includes('edg')) {
+                    return 'Edge';
+                } else if (ua.includes('safari') && !ua.includes('chrome')) {
+                    return 'Safari';
+                } else if (ua.includes('opr') || ua.includes('opera')) {
+                    return 'Opera';
+                } else if (ua.includes('chrome')) {
+                    return 'Chrome';
+                } else {
+                    return 'Unknown';
+                }
+            }
+            // const deviceNameOrModel = req.headers['user-agent'];
+            const userAgent = req.get('user-agent');
+            const browser = getBrowserInfo(userAgent);
+            const activity = await Activity.create({
+                operatingSystem: deviceModel,
+                browser,
+                userId: user._id
+            });
+            console.log(activity)
+            activityId = activity._id
+        }
+
+        //Token, set the Cokkie
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+
+
+        //Success response
+        res.status(200).json({ message: 'Successfully Signed In', user, accessToken });
+
+
+
+    } catch (error) {
+        next(error)
+    }
+};
+
+const hostSignIn = async (req, res, next) => {
+    try {
+        // Get email and password from req.body
+        const { email, password } = req.body;
+
+        // Find the user by email
+        const user = await User.findOne({ email });
+
+        if (user?.role !== 'host') {
             return res.status(401).json({ message: 'Authentication failed' });
         }
 
@@ -942,6 +1117,7 @@ const allHosts = async (req, res, next) => {
 
         let allHosts = allHostsQuery;
 
+        console.log("All Hosts: " + allHosts)
 
         if (approve === "true" && isBanned === "false") {
             allHosts = await User.find({ role: "host", approved: true, ...searchFilter, isBanned: false });
@@ -950,7 +1126,7 @@ const allHosts = async (req, res, next) => {
             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
         }
         if (approve === "false") {
-            allHosts = await User.find({ role: "host", approved: false, ...searchFilter });
+            allHosts = await User.find({ role: "host", emailVerified: true, approved: false, ...searchFilter });
             const carCount = await User.countDocuments({ approved: true, ...searchFilter })
 
             // return res.status(200).json({ message: 'Apoprove user retrived successfully', hostData })
@@ -1745,6 +1921,114 @@ const forgetPassword = async (req, res, next) => {
     }
 };
 
+const userForgetPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        console.log(email)
+
+        // Check if the user already exists
+        const user = await User.findOne({ email });
+        if (user?.role !== 'user') {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        // Generate OTC (One-Time Code)
+        const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+        // Store the OTC and its expiration time in the database
+        user.oneTimeCode = oneTimeCode;
+        await user.save();
+
+        // Prepare email for password reset
+        const emailData = {
+            email,
+            subject: 'Password Reset Email',
+            html: `
+        <h1>Hello, ${user.fullName}</h1>
+        <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
+        <small>This Code is valid for 3 minutes</small>
+      `
+        }
+
+        // Send email
+        try {
+            await emailWithNodemailer(emailData);
+        } catch (emailError) {
+            console.error('Failed to send verification email', emailError);
+        }
+
+        // Set a timeout to update the oneTimeCode to null after 1 minute
+        setTimeout(async () => {
+            try {
+                user.oneTimeCode = null;
+                await user.save();
+                console.log('oneTimeCode reset to null after 3 minute');
+            } catch (error) {
+                console.error('Error updating oneTimeCode:', error);
+            }
+        }, 180000); // 3 minute in milliseconds
+
+        res.status(201).json({ message: 'Sent One Time Code successfully' });
+    } catch (error) {
+        next(error)
+    }
+};
+
+const hostForgetPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        console.log(email)
+
+        // Check if the user already exists
+        const user = await User.findOne({ email });
+        if (user?.role !== 'host') {
+            return res.status(400).json({ message: 'Host not found' });
+        }
+
+        // Generate OTC (One-Time Code)
+        const oneTimeCode = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+
+        // Store the OTC and its expiration time in the database
+        user.oneTimeCode = oneTimeCode;
+        await user.save();
+
+        // Prepare email for password reset
+        const emailData = {
+            email,
+            subject: 'Password Reset Email',
+            html: `
+        <h1>Hello, ${user.fullName}</h1>
+        <p>Your One Time Code is <h3>${oneTimeCode}</h3> to reset your password</p>
+        <small>This Code is valid for 3 minutes</small>
+      `
+        }
+
+        // Send email
+        try {
+            await emailWithNodemailer(emailData);
+        } catch (emailError) {
+            console.error('Failed to send verification email', emailError);
+        }
+
+        // Set a timeout to update the oneTimeCode to null after 1 minute
+        setTimeout(async () => {
+            try {
+                user.oneTimeCode = null;
+                await user.save();
+                console.log('oneTimeCode reset to null after 3 minute');
+            } catch (error) {
+                console.error('Error updating oneTimeCode:', error);
+            }
+        }, 180000); // 3 minute in milliseconds
+
+        res.status(201).json({ message: 'Sent One Time Code successfully' });
+    } catch (error) {
+        next(error)
+    }
+};
+
 //Verify one time code
 const verifyOneTimeCode = async (req, res, next) => {
     try {
@@ -1890,5 +2174,5 @@ const logOut = async (req, res, next) => {
 
 
 module.exports = {
-    signUp, userSignUp, verifyEmail, signIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, approveUser, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
+    signUp, userSignUp, verifyEmail, signIn, userSignIn, hostSignIn, allUsers, allTrushUsers, bannedUsers, allBannedUsers, updateUser, approveHost, approveUser, changePassword, forgetPassword, hostForgetPassword, userForgetPassword, verifyOneTimeCode, updatePassword, allHosts, adminInfo, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, hostUserList, getHostUserById, deleteById, getUserById, logOut, carSoftDeleteById
 };

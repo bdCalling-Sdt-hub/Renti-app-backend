@@ -730,7 +730,7 @@ const startTrip = async (req, res, next) => {
             }
 
             // Notification Start 
-            const message = user.fullName + ' Trip ' + tripStatus + 'Successfully'
+            const message = user.fullName + `Trip ${tripStatus} Successful`
             const newNotification = {
                 message: message,
                 receiverId: rent.hostId,
@@ -754,7 +754,7 @@ const startTrip = async (req, res, next) => {
 
 
         // Notification Start 
-        const message = user.fullName + ' Trip ' + tripStatus + 'Successfully'
+        const message = user.fullName + `Trip ${tripStatus} Successful`
         const newNotification = {
             message: message,
             receiverId: rent.hostId,
@@ -771,7 +771,7 @@ const startTrip = async (req, res, next) => {
         // Notification End
 
 
-        res.status(200).json({ message: `Trip ${tripStatus} successfully` });
+        res.status(200).json({ message: `Trip ${tripStatus} successful` });
     } catch (error) {
         next(error)
     }

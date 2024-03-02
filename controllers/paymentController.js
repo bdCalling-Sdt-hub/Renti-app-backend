@@ -194,7 +194,7 @@ const payment = async (req, res, next) => {
 
 
         // Notification Start 
-        const message = user.fullName + ' Sent Success Payment'
+        const message = user.fullName + ' made Payment Successfully '
         const newNotification = {
             message: message,
             receiverId: rentRequest.hostId,

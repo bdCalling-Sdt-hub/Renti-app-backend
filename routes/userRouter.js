@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut, adminInfo, allTrushUsers, carSoftDeleteById, userSignUp, approveUser } = require('../controllers/userController');
+const { signUp, verifyEmail, signIn, allUsers, bannedUsers, updateUser, approveHost, changePassword, forgetPassword, verifyOneTimeCode, updatePassword, allBannedUsers, allHosts, allUsersWithTripAmount, hostKyc, allUserInfo, allBlockedUsers, blockedUsers, userActivity, hostUserList, getHostUserById, getUserById, allApprovedHosts, deleteById, logOut, adminInfo, allTrushUsers, carSoftDeleteById, userSignUp, approveUser, hostSignIn, userSignIn, userForgetPassword, hostForgetPassword } = require('../controllers/userController');
 const { isValidUser } = require('../middleWares/auth');
 const router = express.Router();
 
@@ -19,6 +19,11 @@ router.post('/verify', verifyEmail);
 
 //Sign in
 router.post('/sign-in', signIn);
+
+//User Sign in
+router.post('/user/sign-in', userSignIn);
+//Host Sign in
+router.post('/host/sign-in', hostSignIn);
 
 // router.get('/activity', isValidUser, userActivity);
 
@@ -68,6 +73,11 @@ router.post('/change-password', changePassword);
 
 // Forget password
 router.post('/forget-password', forgetPassword);
+
+//User Forget password
+router.post('/user/forget-password', userForgetPassword);
+//User Forget password
+router.post('/host/forget-password', hostForgetPassword);
 
 // Verify otp
 router.post('/verify-code', verifyOneTimeCode);

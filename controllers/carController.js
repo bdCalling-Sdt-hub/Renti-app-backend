@@ -69,7 +69,7 @@ const createCar = async (req, res, next) => {
             });
 
 
-            const message = user.fullName + ' Create ' + carModelName
+            const message = user.fullName + ' Created ' + carModelName
             const newNotification = {
                 message: message,
                 image: user.image,
