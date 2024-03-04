@@ -23,7 +23,7 @@ const totalIncome = async (req, res, next) => {
             return res.status(401).json({ message: 'You are not Authorized' });
         }
 
-        const totalIncome = payments.reduce((total, payment) => total + payment.paymentData.amount, 0);
+        const totalIncome = payments.reduce((total, payment) => total + payment.paymentData.amount, 0) / 100;
 
         // Today Income
         const today = new Date();
@@ -32,7 +32,7 @@ const totalIncome = async (req, res, next) => {
 
         const todayPayments = await Payment.find({ createdAt: { $gte: today } });
 
-        const todayIncome = todayPayments.reduce((total, payment) => total + payment.paymentData.amount, 0);
+        const todayIncome = todayPayments.reduce((total, payment) => total + payment.paymentData.amount, 0) / 100;
 
         // Weekly income
         const oneWeekAgo = new Date();
@@ -48,7 +48,7 @@ const totalIncome = async (req, res, next) => {
         const weeklyIncome = weeklyPayments.reduce(
             (total, payment) => total + payment.paymentData.amount,
             0
-        );
+        ) / 100;
 
 
         // Monthly Income
@@ -68,7 +68,7 @@ const totalIncome = async (req, res, next) => {
         const totalMonthlyIncome = monthlyPayments.reduce(
             (total, payment) => total + payment.paymentData.amount,
             0
-        );
+        ) / 100;
 
         res.status(200).json({
             TotalIncome_message: "Total Income",
@@ -108,15 +108,15 @@ const hostTotalIncome = async (req, res, next) => {
         }
 
         const totalIncome = totalPayments.reduce((total, payment) => total + payment.paymentData.amount, 0);
-        console.log(totalIncome)
+        const calculateTotalIncome = (totalIncome / 100)
 
         const percentages = await Percentage.find({})
         const contentNumbers = percentages.map(item => item.content);
         const numberPercentages = Number(contentNumbers)
 
-        const rentiFee = (totalIncome / 100) * numberPercentages;
+        const rentiFee = (calculateTotalIncome / 100) * numberPercentages;
 
-        const hostTotalPayment = totalIncome - rentiFee;
+        const hostTotalPayment = calculateTotalIncome - rentiFee;
 
         // Today Income
         const today = new Date();
@@ -189,14 +189,14 @@ const hostPaymentList = async (req, res, next) => {
 
         // const payoutAmounts = await Payment.find({ payout: true }).select('paymentData.amount'); // Total Payment
         const totalPayoutAmounts = paymentList.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
-        console.log(totalPayoutAmounts)
+        const calculateTotalAmounts = (totalPayoutAmounts / 100)
 
         const percentages = await Percentage.find({});
         const contentNumbers = percentages.map(item => item.content);
         const numberPercentages = Number(contentNumbers);
 
-        const hostTotalIncome = (totalPayoutAmounts / 100) * numberPercentages;
-        const hostPayment = totalPayoutAmounts - hostTotalIncome;
+        const hostTotalIncome = (calculateTotalAmounts / 100) * numberPercentages;
+        const hostPayment = calculateTotalAmounts - hostTotalIncome;
         console.log(hostPayment)
 
         const userPaymentList = [];

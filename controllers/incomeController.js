@@ -46,10 +46,11 @@ const hostPayment = async (req, res, next) => {
         console.log("rentiTotal", rentiTotal)
 
         const hostPanding = totalPaymentAmounts - rentiTotal;
-        console.log("hostPanding", hostPanding)
+        const calculateHostPanding = hostPanding / 100;
+        console.log("hostPanding", calculateHostPanding)
 
         const hostPayment = totalPayoutAmounts - rentiTotal;
-        console.log("hostPayment", hostPayment)
+        const calculateHostPayment = hostPayment / 100;
 
         let hostTotalPercentage = (totalPayoutAmounts / totalPayment) * 100;
         console.log("hostTotalPercentage", hostTotalPercentage)
@@ -58,8 +59,8 @@ const hostPayment = async (req, res, next) => {
         console.log("hostPendingPercentage", hostPendingPercentage)
 
         const income = await Income.create({
-            hostTotalPending: hostPanding,
-            hostTotalPayment: hostPayment,
+            hostTotalPending: calculateHostPanding,
+            hostTotalPayment: calculateHostPayment,
             hostTotalPercentage,
             hostPendingPercentage
         })
@@ -409,7 +410,7 @@ const rentiPaymentList = async (req, res, next) => {
         }
 
         const payoutAmounts = await Payment.find({}).select('paymentData.amount'); // Total Payment
-        const totalPayoutAmounts = payoutAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0);
+        const totalPayoutAmounts = payoutAmounts.reduce((acc, payment) => acc + payment.paymentData.amount, 0) / 100;
 
         const percentages = await Percentage.find({});
         const contentNumbers = percentages.map(item => item.content);

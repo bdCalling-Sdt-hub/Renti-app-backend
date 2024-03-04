@@ -322,7 +322,7 @@ const allRentRequest = async (req, res, next) => {
             return res.status(400).json({ message: "Renti Canceled not found" })
         }
 
-        const totalRejectedAmount = rentRejected.reduce((total, rent) => total + Number(rent.totalAmount), 0);
+        const totalRejectedAmount = rentRejected.reduce((total, rent) => total + Number(rent.totalAmount), 0) / 100;
 
         // Rent Reserved ----Start
         const reservedCars = await Car.find({ tripStatus: "Start" })
@@ -334,7 +334,7 @@ const allRentRequest = async (req, res, next) => {
 
         const paymentData = await Payment.find({ _id: { $in: carPaymentIds } });
 
-        const rentReservedTotalAmount = paymentData.reduce((total, payment) => total + payment.paymentData.amount, 0);
+        const rentReservedTotalAmount = paymentData.reduce((total, payment) => total + payment.paymentData.amount, 0) / 100;
 
 
         // Rent Complete
@@ -347,7 +347,7 @@ const allRentRequest = async (req, res, next) => {
 
         const completedPaymentData = await Payment.find({ _id: { $in: carCompletedPaymentIds } });
 
-        const rentCompletedTotalAmount = completedPaymentData.reduce((total, payment) => total + payment.paymentData.amount, 0);
+        const rentCompletedTotalAmount = completedPaymentData.reduce((total, payment) => total + payment.paymentData.amount, 0) / 100;
 
 
         if (!user) {
