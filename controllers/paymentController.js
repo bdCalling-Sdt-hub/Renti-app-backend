@@ -210,6 +210,17 @@ const payment = async (req, res, next) => {
         io.to('room' + roomId).emit('host-notification', notification);
         // Notification End
 
+        const messageToAdmin = user.fullName + ' made payment'
+        const newNotificationAdmin = {
+            message: messageToAdmin,
+            image: user.image,
+            linkId: user._id,
+            type: 'admin'
+        }
+        await addNotification(newNotificationAdmin)
+        const adminNotification = await getAllNotification('admin')
+        io.emit('admin-notification', adminNotification);
+
         res.status(200).json({ message: 'Payment success', paymentData });
     } catch (error) {
         next(error);

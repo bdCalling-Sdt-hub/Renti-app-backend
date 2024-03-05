@@ -14,6 +14,7 @@ require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const { createFileDetails } = require("../helpers/image.helper");
+const { addNotification, getAllNotification } = require("./notificationController");
 
 
 // Define a map to store user timers for sign up requests
@@ -56,7 +57,7 @@ const userSignUp = async (req, res, next) => {
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
             // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
-            imageFileName = createFileDetails('image', req.files.image[0].filename)
+            imageFileName = createFileDetails('kyc', req.files.image[0].filename)
         }
 
         // Create the user in the database
@@ -173,7 +174,7 @@ const signUp = async (req, res, next) => {
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
             // Add public/uploads link to the image file
             // imageFileName = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
-            imageFileName = createFileDetails('image', req.files.image[0].filename)
+            imageFileName = createFileDetails('kyc', req.files.image[0].filename)
         }
 
 
@@ -769,7 +770,7 @@ const signIn = async (req, res, next) => {
         }
 
         //Token, set the Cokkie
-        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
 
         //Success response
@@ -858,7 +859,7 @@ const userSignIn = async (req, res, next) => {
         }
 
         //Token, set the Cokkie
-        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
 
         //Success response
@@ -945,7 +946,7 @@ const hostSignIn = async (req, res, next) => {
         }
 
         //Token, set the Cokkie
-        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
 
         //Success response
@@ -1464,11 +1465,11 @@ const allUsersWithTripAmount = async (req, res, next) => {
         let allUsers = await allUsersQuery;
 
         if (approve === "true" && isBanned === "false") {
-            allUsers = await User.find({ role: "user", approved: true, ...searchFilter, isBanned: false });
+            allUsers = await User.find({ role: "user", emailVerified: true, approved: true, ...searchFilter, isBanned: false });
         }
 
         if (approve === "false") {
-            allUsers = await User.find({ role: "user", approved: false, ...searchFilter });
+            allUsers = await User.find({ role: "user", emailVerified: true, approved: false, ...searchFilter });
         }
 
         const totalCount = await User.countDocuments(searchFilter);
@@ -2042,6 +2043,18 @@ const verifyOneTimeCode = async (req, res, next) => {
         } else if (user.oneTimeCode === oneTimeCode) {
             user.emailVerified = true;
             await user.save();
+
+            const message = user.fullName + ' sent a ' + user.role + ' request'
+            const newNotification = {
+                message: message,
+                image: user.image,
+                linkId: user._id,
+                type: 'admin'
+            }
+            await addNotification(newNotification)
+            const adminNotification = await getAllNotification('admin')
+            io.emit('admin-notification', adminNotification);
+
             res.status(200).json({ success: true, message: 'User verified successfully' });
         } else {
             res.status(410).json({ success: false, message: 'Failed to verify user' });

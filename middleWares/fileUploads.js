@@ -6,9 +6,11 @@ const configureFileUpload = () => {
         destination: function (req, file, cb) {
             if (
                 file.mimetype === 'image/jpeg' ||
+                file.mimetype === 'image/jpg' ||
                 file.mimetype === 'image/png'
             ) {
-                cb(null, path.join(__dirname, '../public/uploads/image'));
+                // cb(null, path.join(__dirname, '../public/uploads/image'));
+                cb(null, path.join(__dirname, '../public/uploads/kyc'));
             }
             else {
                 cb(null, path.join(__dirname, '../public/uploads/kyc'));
