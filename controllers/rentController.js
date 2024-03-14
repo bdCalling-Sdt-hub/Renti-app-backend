@@ -16,24 +16,31 @@ const createRentRequest = async (req, res, next) => {
 
         const user = await User.findById(req.body.userId);
         const car = await Car.findById(req.params.carId);
+        console.log("Car found", car.tripStatus)
+
+        if (car.tripStatus !== 'End') {
+            return res.status(400).json({ message: 'Car is Already Booked' });
+        }
 
         const hourlyRate = car?.hourlyRate;
-        console.log(hourlyRate)
+        // console.log(hourlyRate)
 
         const fromDate = new Date(startDate);
         const toDate = new Date(endDate);
 
-        const existingRentRequest = await Rent.findOne({
-            userId: req.body.userId,
-            startDate: fromDate,
-            endDate: toDate
-        });
+        // const existingRentRequest = await Rent.findOne({
+        //     userId: req.body.userId,
+        //     startDate: fromDate,
+        //     endDate: toDate
+        // });
 
-        console.log("existingRentRequest", existingRentRequest)
+        // console.log("existingRentRequest", existingRentRequest)
 
-        if (existingRentRequest) {
-            return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
-        }
+        // if (existingRentRequest) {
+
+
+        //     return res.status(400).json({ message: 'Rent request already exits', existingRentRequest });
+        // }
 
 
         if (car.isCarActive === "Deactive") {
@@ -101,6 +108,7 @@ const createRentRequest = async (req, res, next) => {
 
 
         car.popularity += 1;
+        car.tripStatus = 'Start'
         await car.save();
 
         // Notification Start 

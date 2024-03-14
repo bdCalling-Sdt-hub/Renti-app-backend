@@ -29,6 +29,7 @@ async function addManyNotifications(data) {
 }
 
 async function getAllNotification(type, limit = 10, page = 1, receiverId = null) {
+
   try {
     // Create a new notification using the data provided
     var allNotification
@@ -42,6 +43,9 @@ async function getAllNotification(type, limit = 10, page = 1, receiverId = null)
       notViewed = await Notification.countDocuments({ viewStatus: 'false', type: type });
       count = await Notification.countDocuments({ type: type });
     }
+
+
+
     else if (type === 'user' || type === 'host') {
       allNotification = await Notification.find({ receiverId: receiverId, type: type })
         .limit(limit)
@@ -82,6 +86,7 @@ const allNotifications = async (req, res) => {
     const limit = Number(req.query.limit) || 10;
 
     var type = checkUser.role
+    console.log("Tyepeeeeeeee------->", type)
     var allNotification
     var notViewed
     var count
@@ -121,6 +126,7 @@ const allNotifications = async (req, res) => {
         nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
       },
     }
+    console.log("Dattttttta------------->", data)
     if (type === 'admin') {
       io.emit('admin-notification', data)
     }
@@ -132,7 +138,7 @@ const allNotifications = async (req, res) => {
         status: 'OK',
         statusCode: '200',
         type: 'notification',
-        message: 'Notifications retrieved successfully',
+        message: `Notifications retrieved successfully`,
         data: data
       });
   }
