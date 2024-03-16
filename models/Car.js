@@ -22,7 +22,7 @@ const carSchema = new mongoose.Schema({
     carType: { type: String, enum: ['Standard', 'Luxury'], default: 'Standard' },
     specialCharacteristics: { type: String, enum: ['Baby Car Seat', 'Sunroof', 'Bluetooth', 'GPS'], default: 'GPS' },
     activeReserve: { type: Boolean, required: false, default: 'false' },
-    tripStatus: { type: String, enum: ['Start', 'End', 'Pending'], default: 'Pending' },
+    tripStatus: { type: String, enum: ['Start', 'End', 'Pending'], default: 'End' },
     carImage: { type: Object, required: false }, // Rent Trip Start
     // carApproved: { type: Boolean, default: false },
     // isCarActive: { type: Boolean, default: true },
