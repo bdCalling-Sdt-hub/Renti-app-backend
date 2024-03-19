@@ -738,7 +738,7 @@ const startTrip = async (req, res, next) => {
             }
 
             // Notification Start 
-            const message = user.fullName + `Trip ${tripStatus} Successful`
+            const message = user.fullName + ` Trip ${tripStatus} Successful`
             const newNotification = {
                 message: message,
                 receiverId: rent.hostId,

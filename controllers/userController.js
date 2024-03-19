@@ -2044,7 +2044,7 @@ const verifyOneTimeCode = async (req, res, next) => {
             user.emailVerified = true;
             await user.save();
 
-            const message = user.fullName + ' sent a ' + user?.role + ' request'
+            const message = user?.fullName + ' sent a ' + user?.role + ' request'
             const newNotification = {
                 message: message,
                 image: user.image,
