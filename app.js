@@ -82,8 +82,8 @@ app.use('/api/notifications', notificationRouter)
 app.use('/api/activities', activityRouter)
 
 app.use(express.static('public'));
-app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))
-app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/image/'));
+// app.use('/public/uploads/kyc', express.static(__dirname + '/public/uploads/kyc/'))
+// app.use('/public/uploads/image', express.static(__dirname + '/public/uploads/image/'));
 
 
 

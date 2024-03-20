@@ -1701,7 +1701,7 @@ const updateUser = async (req, res, next) => {
         // Handle updating image and KYC separately
         if (req.files && req.files.image) {
             // const publicFileUrl = `${req.protocol}://${req.get('host')}/public/uploads/image/${req.files.image[0].filename}`;
-            const publicFileUrl = createFileDetails('image', req.files.image[0].filename)
+            const publicFileUrl = createFileDetails('kyc', req.files.image[0].filename)
             updatedUser.image = publicFileUrl;
         }
 
