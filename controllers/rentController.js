@@ -18,7 +18,8 @@ const createRentRequest = async (req, res, next) => {
         const car = await Car.findById(req.params.carId);
         console.log("Car found", car.tripStatus)
 
-        if (car.tripStatus !== 'End') {
+        if (car.tripStatus === 'Start') {
+            console.log("object not found", car.tripStatus)
             return res.status(400).json({ message: 'Car is Already Booked' });
         }
 
@@ -68,6 +69,7 @@ const createRentRequest = async (req, res, next) => {
         });
 
         console.log("acceptedRentRequest", acceptedRentRequest)
+
         if (acceptedRentRequest) {
             console.log("acceptedRentRequest", acceptedRentRequest)
             return res.status(400).json({ message: `Car is already rented from ${acceptedRentRequest.startDate} to ${acceptedRentRequest.endDate} `, acceptedRentRequest });
@@ -108,7 +110,7 @@ const createRentRequest = async (req, res, next) => {
 
 
         car.popularity += 1;
-        car.tripStatus = 'Start'
+        // car.tripStatus = 'Start'
         await car.save();
 
         // Notification Start 
@@ -175,7 +177,7 @@ const acceptRentRequest = async (req, res, next) => {
             res.status(404).json({ message: 'Please send rent request status Ex: Accepted or Rejected' })
         }
 
-        const car = await Car.findOne({ _id: rentRequest.carId });
+        const car = await Car.findOne({ _id: rentRequest?.carId });
 
         console.log("Rehhhhh---->", car?.carOwner)
 
@@ -192,6 +194,8 @@ const acceptRentRequest = async (req, res, next) => {
         }
 
         if (request === 'Accepted') {
+            car.tripStatus = 'Start'
+            await car.save();
             rentRequest.requestStatus = 'Accepted';
             await rentRequest.save();
 

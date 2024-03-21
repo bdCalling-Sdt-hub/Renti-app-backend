@@ -2038,6 +2038,7 @@ const verifyOneTimeCode = async (req, res, next) => {
         console.log(req.body.oneTimeCode);
         console.log(email);
         const user = await User.findOne({ email });
+        console.log("Role ----------------->", user?.role);
         if (!user) {
             return res.status(40).json({ message: 'User not found' });
         } else if (user.oneTimeCode === oneTimeCode) {
