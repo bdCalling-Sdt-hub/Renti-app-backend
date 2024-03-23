@@ -158,6 +158,8 @@ const userCancelRentRequest = async (req, res, next) => {
 
         rentRequest.requestStatus = 'Cancel';
         await rentRequest.save();
+        car.tripStatus === 'End'
+        await car.save();
         return res.status(200).json({ message: 'Request Cancel' });
 
 
