@@ -158,7 +158,7 @@ const userCancelRentRequest = async (req, res, next) => {
 
         rentRequest.requestStatus = 'Cancel';
         await rentRequest.save();
-        car.tripStatus === 'End'
+        car.tripStatus = 'End'
         await car.save();
         return res.status(200).json({ message: 'Request Cancel' });
 
@@ -172,6 +172,8 @@ const userCancelRentRequest = async (req, res, next) => {
 const acceptRentRequest = async (req, res, next) => {
     try {
         const rentRequest = await Rent.findOne({ _id: req.params.requestId });
+
+        console.log("Sakib", rentRequest.userId)
 
         const { request } = req.body;
 
@@ -202,10 +204,10 @@ const acceptRentRequest = async (req, res, next) => {
             await rentRequest.save();
 
             // Notification Start 
-            const message = 'Rent request Accepted'
+            const message = 'Congratulations! Your request has been accepted'
             const newNotification = {
                 message: message,
-                receiverId: car.carOwner,
+                receiverId: rentRequest.userId,
                 image: car.image[0],
                 linkId: rentRequest._id,
                 type: 'user'
@@ -214,7 +216,7 @@ const acceptRentRequest = async (req, res, next) => {
             const notification = await addNotification(newNotification)
             // const notification = await getAllNotification('user', 6, 1, car.userId)
             console.log('notification ', notification)
-            const roomId = car.carOwner.toString()
+            const roomId = rentRequest.userId.toString()
             console.log('room---------->', roomId)
             io.to('room' + roomId).emit('user-notification', notification);
             // Notification End
@@ -231,7 +233,7 @@ const acceptRentRequest = async (req, res, next) => {
             const newNotification = {
                 message: message,
                 // receiverId: car.userId,
-                receiverId: car.carOwner,
+                receiverId: rentRequest.userId,
                 image: car.image,
                 linkId: rentRequest._id,
                 type: 'user'
@@ -240,7 +242,7 @@ const acceptRentRequest = async (req, res, next) => {
             const notification = await addNotification(newNotification)
             // const notification = await getAllNotification('user', 6, 1, car.carOwner)
             console.log('notification ', notification)
-            const roomId = car.carOwner.toString()
+            const roomId = rentRequest.userId.toString()
             console.log('room---------->', roomId)
             io.to('room' + roomId).emit('user-notification', notification);
             // Notification End

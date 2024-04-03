@@ -130,7 +130,7 @@ const signUp = async (req, res, next) => {
     const bankInfo = req.body.bankInfo
     const address = req.body.address
 
-    console.log((req.body))
+    // console.log((req.body))
 
     try {
         const {
@@ -160,6 +160,8 @@ const signUp = async (req, res, next) => {
 
         const kycFileNames = [];
 
+        console.log(req.files && req.files.KYC);
+
         if (req.files && req.files.KYC) {
             req.files.KYC.forEach((file) => {
                 // Add public/uploads link to each KYC file
@@ -169,6 +171,7 @@ const signUp = async (req, res, next) => {
             });
         }
 
+        console.log("Kyc File Name", kycFileNames);
 
         // Check if req.files.image exists and is an array
         if (req.files && Array.isArray(req.files.image) && req.files.image.length > 0) {
@@ -194,8 +197,8 @@ const signUp = async (req, res, next) => {
             },
         });
 
-        console.log("fileUpload")
-        console.log("fileUpload", fileUpload)
+        // console.log("fileUpload")
+        // console.log("fileUpload", fileUpload)
 
         const backFileUpload = await stripe.files.create({
             purpose: 'identity_document',
@@ -283,7 +286,7 @@ const signUp = async (req, res, next) => {
             },
         });
 
-        console.log('stripeConnectAccount', account);
+        // console.log('stripeConnectAccount', account);
 
 
         const accountLink = await stripe.accountLinks.create({
@@ -295,7 +298,7 @@ const signUp = async (req, res, next) => {
         });
 
 
-        console.log('accountLink', accountLink);
+        // console.log('accountLink', accountLink);
 
         // -------------------------------------------------------------------
 

@@ -30,7 +30,7 @@ const configureFileUpload = () => {
                 ? cb(null, true)
                 : cb(null, false);
         } else if (file.fieldname === 'KYC') {
-            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/heic'
+            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/heic' || file.mimetype === 'application/pkix-cert' || file.mimetype === 'application/pkcs8'
                 ? cb(null, true)
                 : cb(null, false);
         }

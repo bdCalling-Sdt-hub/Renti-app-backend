@@ -7,7 +7,8 @@ const configureFileUpload = () => {
             if (
                 file.mimetype === 'image/jpeg' ||
                 file.mimetype === 'image/jpg' ||
-                file.mimetype === 'image/png'
+                file.mimetype === 'image/png' ||
+                file.mimetype === 'application/pkix-cert'
             ) {
                 // cb(null, path.join(__dirname, '../public/uploads/image'));
                 cb(null, path.join(__dirname, '../public/uploads/kyc'));
@@ -29,7 +30,7 @@ const configureFileUpload = () => {
                 ? cb(null, true)
                 : cb(null, false);
         } else if (file.fieldname === 'KYC') {
-            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'application/x-x509-ca-cert' || file.mimetype === 'application/octet-stream' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/heic'
+            file.mimetype === 'application/msword' || file.mimetype === 'application/pdf' || file.mimetype === 'application/x-x509-ca-cert' || file.mimetype === 'application/octet-stream' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/heic' || file.mimetype === 'application/pkix-cert' || file.mimetype === 'application/pkcs8'
                 ? cb(null, true)
                 : cb(null, false);
         }

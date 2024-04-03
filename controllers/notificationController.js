@@ -127,12 +127,12 @@ const allNotifications = async (req, res) => {
       },
     }
     console.log("Dattttttta------------->", data)
-    if (type === 'admin') {
-      io.emit('admin-notification', data)
-    }
-    else {
-      io.to('room' + req.body.userId).emit(`${type}-notification`, data)
-    }
+    // if (type === 'admin') {
+    //   io.emit('admin-notification', data)
+    // }
+    // else {
+    //   io.to('room' + req.body.userId).emit(`${type}-notification`, data)
+    // }
     return res.status(200).json(
       {
         status: 'OK',
@@ -190,12 +190,12 @@ const getNotificationDetails = async (req, res) => {
         nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
       },
     }
-    if (type === 'admin') {
-      io.emit('admin-notification', data)
-    }
-    else {
-      io.to('room' + req.body.userId).emit(`${type}-notification`, data)
-    }
+    // if (type === 'admin') {
+    //   io.emit('admin-notification', data)
+    // }
+    // else {
+    //   io.to('room' + req.body.userId).emit(`${type}-notification`, data)
+    // }
     console.log('details api response ----------------->', data)
     return res.status(200).json({ status: 'OK', statusCode: '200', type: 'notification', message: 'Notifications retrieved successfully', data: data })
   }
