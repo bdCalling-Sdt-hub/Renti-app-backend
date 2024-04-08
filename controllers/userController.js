@@ -773,7 +773,7 @@ const signIn = async (req, res, next) => {
         }
 
         //Token, set the Cokkie
-        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
+        const accessToken = jwt.sign({ _id: user._id, email: user.email, role: user.role, activityId: activityId }, process.env.JWT_SECRET_KEY, { expiresIn: '14d' });
 
 
         //Success response
